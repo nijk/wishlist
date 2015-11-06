@@ -1,0 +1,7 @@
+# IDE files
+*.iml
+.idea
+
+# Codebase
+node_modules
+dist 
