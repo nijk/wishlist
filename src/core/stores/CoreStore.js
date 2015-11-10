@@ -9,7 +9,7 @@
 const Fluxxor = require('fluxxor');
 const events = require('../events');
 
-let state = {
+let store = {
     started: false
 };
 
@@ -21,12 +21,12 @@ const CoreStore = Fluxxor.createStore({
     },
 
     onStart () {
-        state.started = true;
-        console.info(`APP started ${state.started}`);
+        store.started = true;
+        this.emit( events.CHANGE );
     },
 
     hasStarted () {
-        return state.started;
+        return store.started;
     }
 });
 

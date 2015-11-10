@@ -1,5 +1,5 @@
 'use strict';
 
-const Core = require('core/Core');
+const App = require('core/containers/App');
 
-Core.startApp();
+App.mount();

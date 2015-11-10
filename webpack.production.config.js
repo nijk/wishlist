@@ -16,7 +16,6 @@ module.exports = {
     target: 'web',
     cache: true,
     debug: true,
-    devtool: 'eval',
     entry: {
         app: path.join(srcPath, 'index.js'),
         common: ['fluxxor', 'react', 'react-dom', 'lodash', 'keymirror']
@@ -42,13 +41,8 @@ module.exports = {
                 query: {
                     presets: ['es2015', 'react'],
                     cacheDirectory: true,
-                    sourceMaps: true
+                    sourceMaps: false
                 }
-            },
-            {
-                test: /\.(js|jsx)?$/,
-                exclude: /node_modules/,
-                loader: 'eslint-loader'
             },
             {
                 test: /\.scss?$/,
@@ -57,6 +51,8 @@ module.exports = {
         ]
     },
     plugins: [
+        new webpack.optimize.DedupePlugin(),
+        new webpack.optimize.UglifyJsPlugin(),
         new ExtractTextPlugin('[name].css'),
         new webpack.optimize.CommonsChunkPlugin('common', 'common.js'),
         new HtmlWebpackPlugin({
@@ -65,9 +61,6 @@ module.exports = {
         }),
         new webpack.NoErrorsPlugin()
     ],
-    eslint: {
-        configFile: '.eslintrc'
-    },
     postcss: [
         autoprefixer({
             browsers: ['last 2 versions']

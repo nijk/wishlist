@@ -5,25 +5,29 @@
  */
 
 'use strict';
-
+const _ = require('lodash');
 const Fluxxor = require('fluxxor');
 const React = require('react');
-const App = require('./components/App');
-const AppContainer = require('./components/AppContainer');
-const CoreStore = require('core/stores/CoreStore');
-const events = require('core/events');
+const CoreStore = require('./stores/CoreStore');
+const ItemsStore = require('./stores/ItemsStore');
+const actions = require('./actions');
 
-console.info('App', App);
+let core = new Fluxxor.Flux();
 
-App.flux.addAction('app', 'start', function () {
-    this.dispatch(events.APP_START, {});
+// Shortcut methods for easy central access
+// -------------------------
+_.extend(core, {
+    // Fluxxor shortcuts
+    createStore: Fluxxor.createStore,
+    FluxMixin: Fluxxor.FluxMixin( React ),
+    StoreWatchMixin: Fluxxor.StoreWatchMixin
 });
 
-App.flux.addStore('Core', new CoreStore());
+core.addActions(actions);
 
-module.exports = {
-    startApp () {
-        App.mount();
-        App.flux.actions.app.start();
-    }
-};
+core.addStores({
+    'Core': new CoreStore(),
+    'Items': new ItemsStore()
+});
+
+module.exports = core;
