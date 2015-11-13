@@ -12,7 +12,7 @@ const Button = require('./Button');
 const Text = require('./Text');
 
 /* Styles */
-require('style/add-item');
+require('style/add-url');
 /* ------ */
 
 const WishlistItem = React.createClass({
@@ -50,22 +50,22 @@ const WishlistItem = React.createClass({
 
     _renderEdit () {
         const labelClasses = {
-            'add-item__label': true
+            'add-url__label': true
         };
         const btnClasses = {
             'button--disabled': false,
-            'add-item__button': true
+            'add-url__button': true
         };
         /*const linkClasses = {};*/
 
         return (
-            <div key={ this.props.key } className="add-item">
+            <div key={ this.props.key } className="add-url">
                 <Input
                     key="addItemInput"
                     type="text"
                     label="Add an item"
                     labelClassNames={ labelClasses }
-                    value={ this.props.value }
+                    value={ this.props.url }
                     defaultValue={ this.props.inputDefaultValue }
                     onChange={ this.props.onHandleInput }
                     />

@@ -16,7 +16,7 @@ module.exports = {
     target: 'web',
     cache: true,
     debug: true,
-    devtool: 'eval',
+    /*devtool: 'eval',*/
     entry: {
         app: path.join(srcPath, 'index.js'),
         common: ['fluxxor', 'react', 'react-dom', 'lodash', 'keymirror']

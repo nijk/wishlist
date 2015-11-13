@@ -6,6 +6,7 @@
 
 'use strict';
 
+const _ = require('lodash');
 const Fluxxor = require('fluxxor');
 const events = require('../events');
 
@@ -16,24 +17,21 @@ let store = {
 const CoreStore = Fluxxor.createStore({
     initialize () {
         this.bindActions(
-            events.ADD_ITEM, this.onAddItem
+            events.ADD_URL, this.onAddURL
         );
     },
 
-    transform (item) {
+    transform (url, response) {
         return {
-            title: `New item: ${item.value}`,
-            url: item.value,
-            description: `description... for: ${item.value}`,
-            img: {
-                src: '/assets/product-default.png',
-                title: 'Product image'
-            }
+            title: `New item: ${url}`,
+            url: url,
+            description: `description... for: ${url}`,
+            img: response.images
         };
     },
 
-    onAddItem (item) {
-        store.items.push( this.transform(item) );
+    onAddURL ({ url, reponse }) {
+        store.items.push( this.transform(url, response) );
         this.emit( events.CHANGE );
     },
 

@@ -23,18 +23,18 @@ const AppContainer = React.createClass({
         return {
             started: core.store('Core').hasStarted(),
             wishlistItems: core.store('Items').getItems(),
-            addItemValue: ''
+            addURL: ''
         };
     },
 
-    onAddItem () {
-        if (this.state.addItemValue) {
-            core.actions.addItem({ value: this.state.addItemValue });
+    onAddURL () {
+        if (this.state.addURL) {
+            core.actions.addURL( this.state.addURL );
         }
     },
 
-    onHandleInputForAddItem (e, value) {
-        this.setState({ addItemValue: value });
+    onHandleInputForAddURL (e, url) {
+        this.setState({ addURL: url });
     },
 
     onAddAnotherItem (e) {
@@ -47,17 +47,17 @@ const AppContainer = React.createClass({
         console.info('onClickItem handler');
     },
 
-    _renderAddItem () {
+    _renderAddURL () {
         // Set the defaultValue/value depending on the state of the component.
-        const addItemValue = this.state.addItemValue;
+        const addURL = this.state.addURL;
         const props = {};
-        (addItemValue === '') ? props.inputDefaultValue = addItemValue : props.value = addItemValue;
+        (addURL === '') ? props.inputDefaultValue = addURL : props.url = addURL;
 
         return <WishlistItem
                 key="add-item"
                 mode="edit"
-                onHandleInput={ this.onHandleInputForAddItem }
-                onAdd={ this.onAddItem }
+                onHandleInput={ this.onHandleInputForAddURL }
+                onAdd={ this.onAddURL }
                 onAddAnother={ this.onAddAnotherItem }
                 { ...props }
             />;
@@ -74,7 +74,7 @@ const AppContainer = React.createClass({
     render () {
         return (
             <div>
-                { this._renderAddItem() }
+                { this._renderAddURL() }
                 { (this.state.wishlistItems.length > 0) ? _.map(this.state.wishlistItems, this._renderWishlistItem) : null }
             </div>
         );
