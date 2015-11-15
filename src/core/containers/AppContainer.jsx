@@ -9,6 +9,8 @@
 const _ = require('lodash');
 const core = require('core/Core');
 const React = require('react');
+const AddURL = require('../components/AddURL');
+const Button = require('../components/Button');
 const WishlistItem = require('../components/WishlistItem');
 
 const AppContainer = React.createClass({
@@ -22,12 +24,14 @@ const AppContainer = React.createClass({
     getStateFromFlux () {
         return {
             started: core.store('Core').hasStarted(),
+            wishlistItemToAdd: core.store('Items').getItemToAdd(),
             wishlistItems: core.store('Items').getItems(),
             addURL: ''
         };
     },
 
     onAddURL () {
+        // Only honour if stateFromFlux has an addURL value triggered by a change event on input field.
         if (this.state.addURL) {
             core.actions.addURL( this.state.addURL );
         }
@@ -37,9 +41,9 @@ const AppContainer = React.createClass({
         this.setState({ addURL: url });
     },
 
-    onAddAnotherItem (e) {
+    onAddItem (e) {
         e.preventDefault();
-        console.info('onAddAnotherItem handler');
+        core.actions.addWishlistItem( this.state.wishlistItemToAdd );
     },
 
     onClickItem (e) {
@@ -48,22 +52,30 @@ const AppContainer = React.createClass({
     },
 
     _renderAddURL () {
-        // Set the defaultValue/value depending on the state of the component.
-        const addURL = this.state.addURL;
-        const props = {};
-        (addURL === '') ? props.inputDefaultValue = addURL : props.url = addURL;
+        // Add a default value to the form field
+        const props = {
+            inputDefaultValue: this.state.addURL
+        };
 
-        return <WishlistItem
-                key="add-item"
-                mode="edit"
-                onHandleInput={ this.onHandleInputForAddURL }
-                onAdd={ this.onAddURL }
-                onAddAnother={ this.onAddAnotherItem }
-                { ...props }
-            />;
+        return <AddURL key="add-url" onHandleInput={ this.onHandleInputForAddURL } onAdd={ this.onAddURL } { ...props } />
+    },
+
+    _renderAddItem () {
+        return (
+            <div classNames="add-item">
+                <WishlistItem
+                    key="add-item"
+                    mode="display"
+                    onAddItem={ this.onAddItem }
+                    item={ this.state.wishlistItemToAdd }
+                />
+                <Button key="add-item-save" text="Save" onClick={ this.onAddItem } />
+            </div>
+        );
     },
 
     _renderWishlistItem (item, index) {
+        console.info(`_renderWishlistItem #${index}`, item);
         return <WishlistItem
                 key={ `wishlist-item-${index + 1}` }
                 mode="display"
@@ -72,10 +84,12 @@ const AppContainer = React.createClass({
     },
 
     render () {
+        console.info('wishlistItems', this.state.wishlistItems);
         return (
             <div>
                 { this._renderAddURL() }
-                { (this.state.wishlistItems.length > 0) ? _.map(this.state.wishlistItems, this._renderWishlistItem) : null }
+                { (this.state.wishlistItemToAdd) ? this._renderAddItem() : null }
+                { (_.size(this.state.wishlistItems) > 0) ? _.map(this.state.wishlistItems, this._renderWishlistItem).reverse() : null }
             </div>
         );
     }

@@ -15,6 +15,7 @@ const errorHandler = require('errorhandler');
 const helmet = require('helmet');
 const passport = require('passport');
 const serveStatic = require('serve-static');
+const expressPromise = require('express-promise');
 
 const serveStaticOpts = {
     'index': ['index.html']
@@ -27,7 +28,7 @@ module.exports = (app) => {
 
     /* Helmet (security headers) */
     app.use(helmet());
-    app.use(helmet.contentSecurityPolicy());
+    // app.use(helmet.contentSecurityPolicy());
 
     /* Express */
     app.use(methodOverride());
@@ -36,6 +37,7 @@ module.exports = (app) => {
         secret: "notagoodsecret",
         cookie: { httpOnly: true }
     }));
+    app.use(expressPromise());
 
     /* Passport */
     app.use(passport.initialize());

@@ -58,7 +58,7 @@ module.exports = {
         xhr(apiRoutes.token)
             .then(( response ) => {
                 csrfToken = response.body.token;
-                console.info('fetchCSRFToken', response.body.token);
+                // console.info('fetchCSRFToken', response.body.token);
             })
             .catch((e) => {
                 console.warn('fetchCSRFToken error', e);
@@ -67,7 +67,7 @@ module.exports = {
     fetchProduct (url, done) {
         xhr(apiRoutes.productURL, 'post', { url })
             .then(( response ) => {
-                console.info('fetchProduct', url);
+                console.info('fetchProduct', url, response);
                 done(response);
             }).catch((e) => {
                 console.warn('fetchProduct error', e);

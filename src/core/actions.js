@@ -11,18 +11,19 @@ const events = require('./events');
 const Promise = require('native-promise-only');
 
 module.exports = {
-    appStart: function () {
-        console.info(events.APP_START);
+    appStart () {
         API.fetchCSRFToken();
         this.dispatch(events.APP_START, {});
     },
-    addURL: function (url) {
-        const that = this;
-        const callback = function ( result ) {
-            if ( result ) {
-                that.dispatch(events.ADD_URL, { url, result });
+    addURL (url) {
+        const callback = (product) => {
+            if ( product ) {
+                this.dispatch(events.ADD_URL, { url, product: JSON.parse(product.text) });
             }
         };
         API.fetchProduct(url, callback);
+    },
+    addWishlistItem (item) {
+        this.dispatch(events.ADD_ITEM, item);
     }
 };

@@ -6,6 +6,7 @@
 
 'use strict';
 
+const _ = require('lodash');
 const React = require('react');
 const Input = require('./Input');
 const Button = require('./Button');
@@ -22,74 +23,59 @@ const WishlistItem = React.createClass({
         mode: React.PropTypes.oneOf(['display', 'edit']),
         item: React.PropTypes.shape({
             title: React.PropTypes.string.isRequired,
-            url: React.PropTypes.string.isRequired,
-            img: React.PropTypes.shape({
-                src: React.PropTypes.string.isRequired,
-                title: React.PropTypes.string.isRequired
-            }),
             description: React.PropTypes.string.isRequired,
-            onClick: React.PropTypes.func.isRequired
+            url: React.PropTypes.string.isRequired,
+            images: React.PropTypes.arrayOf(
+                React.PropTypes.shape({
+                    url: React.PropTypes.string.isRequired
+                })
+            ),
+            onClick: React.PropTypes.func
         }),
-        inputDefaultValue: React.PropTypes.string,
         onAdd: React.PropTypes.func,
         onAddAnother: React.PropTypes.func,
         onHandleInput: React.PropTypes.func
     },
 
-    _renderDisplay () {
+    _renderItem() {
         return (
             <div key={ this.props.key } className="wishlist-item">
-                <Text tag='h3' text={ this.props.item.title } />
                 <a href={ this.props.item.url } onClick={ this.props.item.onClick } >
-                    <img src={ this.props.item.img.src } title={ this.props.item.img.src } />
+                    <img src={ this.props.item.images[0].url } title={ this.props.item.title } />
                 </a>
+                <Text tag='h3' text={ this.props.item.title } />
                 <Text tag='p' text={ this.props.item.description } />
             </div>
         );
     },
 
-    _renderEdit () {
-        const labelClasses = {
-            'add-url__label': true
-        };
-        const btnClasses = {
-            'button--disabled': false,
-            'add-url__button': true
-        };
-        /*const linkClasses = {};*/
+    _renderImages () {
+        // Get out quick if there's nothing to render
+        if ( !this.props.item.images ) { return null; }
 
+        const images = _.map(this.props.item.images, (item, index) => {
+            if (item && _.isString(item.url)) {
+                return ( <img key={ `temp-item-${index}` } src={ item.url } alt={ item.alt || '' } /> );
+            }
+        }, []);
+
+        console.info('WishlistItem:this.props.item', this.props.item, images);
+        return ( images ) ? images : null;
+    },
+
+    _renderItemEdit () {
         return (
-            <div key={ this.props.key } className="add-url">
-                <Input
-                    key="addItemInput"
-                    type="text"
-                    label="Add an item"
-                    labelClassNames={ labelClasses }
-                    value={ this.props.url }
-                    defaultValue={ this.props.inputDefaultValue }
-                    onChange={ this.props.onHandleInput }
-                    />
-                <Button
-                    key="addItemButton"
-                    text="Add"
-                    classNames={ btnClasses }
-                    onClick={ this.props.onAdd }
-                    />
+            <div classNames="edit-item">
+                { this._renderImages() }
             </div>
         );
-                /*<a
-                    key="addAnotherItemLink"
-                    href="/"
-                    classNames={ linkClasses }
-                    onClick={ this.props.onAddAnother }
-                    >Add another</a>*/
     },
 
     render () {
-        if ( 'edit' === this.props.mode ) {
-            return this._renderEdit();
+        if ('edit' === this.props.mode) {
+            return this._renderItemEdit();
         }
-        return this._renderDisplay();
+        return this._renderItem();
     }
 });
 

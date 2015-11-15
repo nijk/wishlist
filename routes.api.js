@@ -1,7 +1,5 @@
 'use strict';
 
-const _ = require('lodash');
-
 module.exports = {
     token: '/api/token',
     productURL: '/api/product/url',

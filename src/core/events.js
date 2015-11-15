@@ -14,5 +14,12 @@ const defaultEvents = {
 
 module.exports = _.extend(defaultEvents, keymirror({
     APP_START: null,
-    ADD_URL: null
+
+    ADD_URL: null,
+    ADD_URL_SUCCESS: null,
+    ADD_URL_FAILURE: null,
+
+    ADD_ITEM: null,
+    ADD_ITEM_SUCCESS: null,
+    ADD_ITEM_FAILURE: null
 }));

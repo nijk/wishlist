@@ -9,41 +9,45 @@
 const auth = require('./auth');
 const csrf = require('csurf')();
 const routes = require('../routes.api.js');
+const ogScraper = require('open-graph-scraper');
 const ineed = require('ineed');
 
-function errorHandler (req, res, msg) {
-
-    // @todo: log errors server-side
-
-    res.json({ error: msg });
+// @todo: log errors server-side
+function errorHandler (err, msg) {
+    res.json({ msg, err });
 }
 
 function getUserObject (req, res, id) {
-    if (id) {
-        res.json({ username: id });
-    } else {
-        errorHandler (req, res, 'User not found');
-    }
+    (id) ? res.json({ username: id }) : errorHandler (req, res, 'User not found');
 };
 
 module.exports = (app) => {
-    app.get(routes.token, csrf, function(req, res) {
-        res.json({ token: req.csrfToken() });
-    });
+    /* API: GET CSRF Token */
+    app.get(routes.token, csrf, (req, res) => res.json({ token: req.csrfToken() }) );
 
-    app.post(routes.productURL, function(req, res) { // @todo: validate CSRF?
+    /* API: POST Product URL (Add URL) */
+    app.post(routes.productURL, (req, res) => { // @todo: validate CSRF?
+        // Scrape from OpenGraph tags
+        ogScraper({ url: req.body.url, timeout: 1000 }, (err, result) => {
+            result.opengraph = false;
+            result.scraped = false;
 
-        console.info('productURL', req.body);
+            if (!err) {
+                result.opengraph = true;
+                res.json( result );
+            } else {
+                errorHandler(err, 'error collecting resources');
+            }
+        });
 
-        ineed.collect.images.from(req.body.url, function (err, response, result) {
+        /*ineed.collect.images.from(req.body.url, function (err, response, result) {
             if ( !err ) {
-                // clearTimeout( timeOut );
                 console.log(result);
                 res.json( result );
             } else {
                 errorHandler(req, res, 'error collecting resources');
             }
-        });
+        });*/
     });
 
     /*app.get('/api/user/:id?', auth.authenticate('local'), function(req, res) {
