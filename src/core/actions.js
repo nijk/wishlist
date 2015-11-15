@@ -24,6 +24,11 @@ module.exports = {
         API.fetchProduct(url, callback);
     },
     addWishlistItem (item) {
-        this.dispatch(events.ADD_ITEM, item);
+        const callback = (item) => {
+            if (item) {
+                this.dispatch(events.ADD_ITEM, item);
+            }
+        };
+        API.addWishlistItem({ user: 'nijk', wishlist: 'myWishlist', item}, callback);
     }
 };

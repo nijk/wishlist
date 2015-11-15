@@ -56,23 +56,36 @@ const xhr = (url, type = 'get', data = {}) => new Promise((resolve, reject) => {
 module.exports = {
     fetchCSRFToken () {
         xhr(apiRoutes.token)
-            .then(( response ) => {
+            .then((response) => {
                 csrfToken = response.body.token;
                 // console.info('fetchCSRFToken', response.body.token);
             })
             .catch((e) => {
-                console.warn('fetchCSRFToken error', e);
+                console.warn('XHR: fetchCSRFToken error', e);
             });
     },
     fetchProduct (url, done) {
         xhr(apiRoutes.productURL, 'post', { url })
-            .then(( response ) => {
-                console.info('fetchProduct', url, response);
+            .then((response) => {
+                console.info('XHR: fetchProduct', url, response);
                 done(response);
-            }).catch((e) => {
-                console.warn('fetchProduct error', e);
+            })
+            .catch((e) => {
+                console.warn('XHR: fetchProduct error', e);
             });
-    }/*,
+    },
+    addWishlistItem ({ user, wishlist, item }, done) {
+        xhr(apiRoutes.addWishlistItem, 'post', { user, wishlist, item})
+            .then((response) => {
+                console.info('XHR: addWishlistItem', response, user, item);
+                done(response);
+            })
+            .catch((e) => {
+                console.warn('XHR: addWishlistItem error', e);
+            });
+    }
+
+    /*,
     fetchUser (id) {
         xhr(apiRoutes.user + id)
             .then(( response ) => {

@@ -6,19 +6,20 @@
 
 'use strict';
 
-const auth = require('./auth');
+const DB = require('./db');
 const csrf = require('csurf')();
-const routes = require('../routes.api.js');
 const ogScraper = require('open-graph-scraper');
 const ineed = require('ineed');
+const auth = require('./auth');
+const routes = require('../routes.api.js');
 
 // @todo: log errors server-side
 function errorHandler (err, msg) {
-    res.json({ msg, err });
+    return { msg, err };
 }
 
 function getUserObject (req, res, id) {
-    (id) ? res.json({ username: id }) : errorHandler (req, res, 'User not found');
+    (id) ? res.json({ username: id }) : res.json(errorHandler(req, 'User not found'));
 };
 
 module.exports = (app) => {
@@ -36,10 +37,11 @@ module.exports = (app) => {
                 result.opengraph = true;
                 res.json( result );
             } else {
-                errorHandler(err, 'error collecting resources');
+                res.json(errorHandler(err, 'API Error: error collecting resources'));
             }
         });
 
+        // Scrape for data
         /*ineed.collect.images.from(req.body.url, function (err, response, result) {
             if ( !err ) {
                 console.log(result);
@@ -48,6 +50,13 @@ module.exports = (app) => {
                 errorHandler(req, res, 'error collecting resources');
             }
         });*/
+    });
+
+    /* API: POST Product URL (Add URL) */
+    app.post(routes.addWishlistItem, (req, res) => {
+        // @todo: validate CSRF?
+        // @todo: handle/cleanse request data
+        DB.insertDocument(res, req.body.wishlist, req.body.item);
     });
 
     /*app.get('/api/user/:id?', auth.authenticate('local'), function(req, res) {

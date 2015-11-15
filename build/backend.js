@@ -122,56 +122,61 @@
 /* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("/**\n * wishlist - server/api\n *\n * Created by nijk on 10/11/2015.\n */\n\n'use strict';\n\nvar auth = __webpack_require__(14);\nvar csrf = __webpack_require__(18)();\nvar routes = __webpack_require__(19);\nvar ogScraper = __webpack_require__(22);\nvar ineed = __webpack_require__(21);\n\n// @todo: log errors server-side\nfunction errorHandler(err, msg) {\n    res.json({ msg: msg, err: err });\n}\n\nfunction getUserObject(req, res, id) {\n    id ? res.json({ username: id }) : errorHandler(req, res, 'User not found');\n};\n\nmodule.exports = function (app) {\n    /* API: GET CSRF Token */\n    app.get(routes.token, csrf, function (req, res) {\n        return res.json({ token: req.csrfToken() });\n    });\n\n    /* API: POST Product URL (Add URL) */\n    app.post(routes.productURL, function (req, res) {\n        // @todo: validate CSRF?\n        // Scrape from OpenGraph tags\n        ogScraper({ url: req.body.url, timeout: 1000 }, function (err, result) {\n            result.opengraph = false;\n            result.scraped = false;\n\n            if (!err) {\n                result.opengraph = true;\n                res.json(result);\n            } else {\n                errorHandler(err, 'error collecting resources');\n            }\n        });\n\n        /*ineed.collect.images.from(req.body.url, function (err, response, result) {\n            if ( !err ) {\n                console.log(result);\n                res.json( result );\n            } else {\n                errorHandler(req, res, 'error collecting resources');\n            }\n        });*/\n    });\n\n    /*app.get('/api/user/:id?', auth.authenticate('local'), function(req, res) {\n        res.json(getUserObject(req, res, req.params.id));\n    });\n     app.post('/api/login', auth.authenticate('local'), function(req, res) {\n        // If this function gets called, authentication was successful.\n        res.json(getUserObject(req, res, req.user.username));\n    });*/\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./server/api.js\n ** module id = 13\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./server/api.js?");
+	eval("/**\n * wishlist - server/api\n *\n * Created by nijk on 10/11/2015.\n */\n\n'use strict';\n\nvar DB = __webpack_require__(14);\nvar csrf = __webpack_require__(17)();\nvar ogScraper = __webpack_require__(18);\nvar ineed = __webpack_require__(19);\nvar auth = __webpack_require__(20);\nvar routes = __webpack_require__(22);\n\n// @todo: log errors server-side\nfunction errorHandler(err, msg) {\n    return { msg: msg, err: err };\n}\n\nfunction getUserObject(req, res, id) {\n    id ? res.json({ username: id }) : res.json(errorHandler(req, 'User not found'));\n};\n\nmodule.exports = function (app) {\n    /* API: GET CSRF Token */\n    app.get(routes.token, csrf, function (req, res) {\n        return res.json({ token: req.csrfToken() });\n    });\n\n    /* API: POST Product URL (Add URL) */\n    app.post(routes.productURL, function (req, res) {\n        // @todo: validate CSRF?\n        // Scrape from OpenGraph tags\n        ogScraper({ url: req.body.url, timeout: 1000 }, function (err, result) {\n            result.opengraph = false;\n            result.scraped = false;\n\n            if (!err) {\n                result.opengraph = true;\n                res.json(result);\n            } else {\n                res.json(errorHandler(err, 'API Error: error collecting resources'));\n            }\n        });\n\n        // Scrape for data\n        /*ineed.collect.images.from(req.body.url, function (err, response, result) {\n            if ( !err ) {\n                console.log(result);\n                res.json( result );\n            } else {\n                errorHandler(req, res, 'error collecting resources');\n            }\n        });*/\n    });\n\n    /* API: POST Product URL (Add URL) */\n    app.post(routes.addWishlistItem, function (req, res) {\n        // @todo: validate CSRF?\n        // @todo: handle/cleanse request data\n        DB.insertDocument(res, req.body.wishlist, req.body.item);\n    });\n\n    /*app.get('/api/user/:id?', auth.authenticate('local'), function(req, res) {\n        res.json(getUserObject(req, res, req.params.id));\n    });\n     app.post('/api/login', auth.authenticate('local'), function(req, res) {\n        // If this function gets called, authentication was successful.\n        res.json(getUserObject(req, res, req.user.username));\n    });*/\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./server/api.js\n ** module id = 13\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./server/api.js?");
 
 /***/ },
 /* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("/**\n * wishlist - server/api\n *\n * Created by nijk on 10/11/2015.\n */\n\n'use strict';\n\nvar passport = __webpack_require__(10);\nvar LocalStrategy = __webpack_require__(15).Strategy;\nvar DB = __webpack_require__(16);\n//const Users = DB.connect( (db) => db.collection('users') );\n\npassport.serializeUser(function (user, done) {\n    done(null, user);\n});\n\npassport.deserializeUser(function (user, done) {\n    done(null, user);\n});\n\n// Passport setup\npassport.use(new LocalStrategy(function (username, password, done) {\n    DB.connect(function (err, db) {\n\n        var Users = db.collection('users');\n        Users.findOne({ username: username }, function (err, user) {\n            if (err) {\n                return done(err);\n            }\n            if (!user) {\n                return done(null, false, { message: 'Incorrect username.' });\n            }\n            if (password !== user.password) {\n                //@todo: don't evaluate passwords against unhashed data\n                return done(null, false, { message: 'Incorrect password.' });\n            }\n            return done(null, user);\n        });\n    });\n}));\n\nmodule.exports = passport;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./server/auth.js\n ** module id = 14\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./server/auth.js?");
+	eval("/**\n * wishlist - server/db\n *\n * Created by nijk on 10/11/2015.\n */\n\n'use strict';\n\nvar MongoClient = __webpack_require__(15).MongoClient;\nvar MongoURL = 'mongodb://localhost:27017/wishlist';\nvar Promise = __webpack_require__(16);\n\nvar connectDB = function connectDB() {\n    // Connect using MongoClient\n    return new Promise(function (resolve, reject) {\n        return MongoClient.connect(MongoURL, function (err, db) {\n            if (err) {\n                return reject(err);\n            }\n            resolve(db);\n        });\n    });\n};\n\nmodule.exports = {\n    insertDocument: function insertDocument(res, collection, data) {\n        return new Promise(function (resolve, reject) {\n            connectDB().then(function (db) {\n                return db.collection(collection).insertOne(data);\n            }).then(function (DBResponse) {\n                resolve(res.json(DBResponse.ops));\n            }).catch(function (e) {\n                res.status(500);\n                reject(res.json({ msg: 'DB:insertDocument connectDB error!', err: e }));\n            });\n        });\n    }\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./server/db.js\n ** module id = 14\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./server/db.js?");
 
 /***/ },
 /* 15 */
 /***/ function(module, exports) {
 
-	eval("module.exports = require(\"passport-local\");\n\n/*****************\n ** WEBPACK FOOTER\n ** external \"passport-local\"\n ** module id = 15\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///external_%22passport-local%22?");
+	eval("module.exports = require(\"mongodb\");\n\n/*****************\n ** WEBPACK FOOTER\n ** external \"mongodb\"\n ** module id = 15\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///external_%22mongodb%22?");
 
 /***/ },
 /* 16 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	eval("/**\n * wishlist - server/db\n *\n * Created by nijk on 10/11/2015.\n */\n\n'use strict';\n\nvar MongoClient = __webpack_require__(17).MongoClient;\nvar MongoURL = 'mongodb://localhost:27017/wishlist';\n\nmodule.exports = {\n    connect: function connect(fn) {\n        // Connect using MongoClient\n        MongoClient.connect(MongoURL, function (err, db) {\n            fn(err, db);\n            if (err) {\n                console.info('DB error!', err);\n            }\n        });\n    }\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./server/db.js\n ** module id = 16\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./server/db.js?");
+	eval("module.exports = require(\"native-promise-only\");\n\n/*****************\n ** WEBPACK FOOTER\n ** external \"native-promise-only\"\n ** module id = 16\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///external_%22native-promise-only%22?");
 
 /***/ },
 /* 17 */
 /***/ function(module, exports) {
 
-	eval("module.exports = require(\"mongodb\");\n\n/*****************\n ** WEBPACK FOOTER\n ** external \"mongodb\"\n ** module id = 17\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///external_%22mongodb%22?");
+	eval("module.exports = require(\"csurf\");\n\n/*****************\n ** WEBPACK FOOTER\n ** external \"csurf\"\n ** module id = 17\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///external_%22csurf%22?");
 
 /***/ },
 /* 18 */
 /***/ function(module, exports) {
 
-	eval("module.exports = require(\"csurf\");\n\n/*****************\n ** WEBPACK FOOTER\n ** external \"csurf\"\n ** module id = 18\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///external_%22csurf%22?");
+	eval("module.exports = require(\"open-graph-scraper\");\n\n/*****************\n ** WEBPACK FOOTER\n ** external \"open-graph-scraper\"\n ** module id = 18\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///external_%22open-graph-scraper%22?");
 
 /***/ },
 /* 19 */
 /***/ function(module, exports) {
 
-	eval("'use strict';\n\nmodule.exports = {\n    token: '/api/token',\n    productURL: '/api/product/url',\n    user: '/api/user/',\n    login: '/api/login'\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./routes.api.js\n ** module id = 19\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./routes.api.js?");
+	eval("module.exports = require(\"ineed\");\n\n/*****************\n ** WEBPACK FOOTER\n ** external \"ineed\"\n ** module id = 19\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///external_%22ineed%22?");
 
 /***/ },
-/* 20 */,
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("/**\n * wishlist - server/api\n *\n * Created by nijk on 10/11/2015.\n */\n\n'use strict';\n\nvar passport = __webpack_require__(10);\nvar LocalStrategy = __webpack_require__(21).Strategy;\nvar DB = __webpack_require__(14);\n//const Users = DB.connect( (db) => db.collection('users') );\n\npassport.serializeUser(function (user, done) {\n    done(null, user);\n});\n\npassport.deserializeUser(function (user, done) {\n    done(null, user);\n});\n\n// Passport setup\npassport.use(new LocalStrategy(function (username, password, done) {\n    DB.connect(function (err, db) {\n\n        var Users = db.collection('users');\n        Users.findOne({ username: username }, function (err, user) {\n            if (err) {\n                return done(err);\n            }\n            if (!user) {\n                return done(null, false, { message: 'Incorrect username.' });\n            }\n            if (password !== user.password) {\n                //@todo: don't evaluate passwords against unhashed data\n                return done(null, false, { message: 'Incorrect password.' });\n            }\n            return done(null, user);\n        });\n    });\n}));\n\nmodule.exports = passport;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./server/auth.js\n ** module id = 20\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./server/auth.js?");
+
+/***/ },
 /* 21 */
 /***/ function(module, exports) {
 
-	eval("module.exports = require(\"ineed\");\n\n/*****************\n ** WEBPACK FOOTER\n ** external \"ineed\"\n ** module id = 21\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///external_%22ineed%22?");
+	eval("module.exports = require(\"passport-local\");\n\n/*****************\n ** WEBPACK FOOTER\n ** external \"passport-local\"\n ** module id = 21\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///external_%22passport-local%22?");
 
 /***/ },
 /* 22 */
 /***/ function(module, exports) {
 
-	eval("module.exports = require(\"open-graph-scraper\");\n\n/*****************\n ** WEBPACK FOOTER\n ** external \"open-graph-scraper\"\n ** module id = 22\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///external_%22open-graph-scraper%22?");
+	eval("'use strict';\n\nmodule.exports = {\n    token: '/api/token',\n    productURL: '/api/product/url',\n    addWishlistItem: '/api/wishlist/myWishlist',\n    user: '/api/user/',\n    login: '/api/login'\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./routes.api.js\n ** module id = 22\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./routes.api.js?");
 
 /***/ }
 /******/ ]);
