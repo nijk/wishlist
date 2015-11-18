@@ -21,5 +21,9 @@ module.exports = _.extend(defaultEvents, keymirror({
 
     ADD_ITEM: null,
     ADD_ITEM_SUCCESS: null,
-    ADD_ITEM_FAILURE: null
+    ADD_ITEM_FAILURE: null,
+
+    FETCH_ITEMS: null,
+    FETCH_ITEMS_SUCCESS: null,
+    FETCH_ITEMS_FAILURE: null
 }));

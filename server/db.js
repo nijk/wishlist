@@ -9,31 +9,41 @@
 const MongoClient = require('mongodb').MongoClient;
 const MongoURL = 'mongodb://localhost:27017/wishlist';
 const Promise = require('native-promise-only');
+const assert = require('assert');
 
-const connectDB = () => {
-    // Connect using MongoClient
-    return new Promise((resolve, reject) => MongoClient.connect(MongoURL, (err, db) => {
-        if (err) {
-            return reject(err);
-        }
-        resolve(db);
-    }));
-};
+// Connect using MongoClient
+const connectDB = () => new Promise((resolve, reject) => MongoClient.connect(MongoURL, (err, db) => {
+    if (err) return reject(err);
+    resolve(db);
+}));
 
 module.exports = {
-    insertDocument: (res, collection, data) => {
-        return new Promise((resolve, reject) => {
-            connectDB()
-                .then((db) => {
-                    return db.collection(collection).insertOne(data);
-                })
-                .then((DBResponse) => {
-                    resolve(res.json(DBResponse.ops));
-                })
-                .catch((e) => {
-                    res.status(500);
-                    reject(res.json({ msg: 'DB:insertDocument connectDB error!', err: e }));
+    createDocument: ({ user, collection, doc }) => new Promise((resolve, reject) => {
+        connectDB()
+            .then((db) => {
+                db.collection(collection).insertOne(doc, (err, result) => {
+                    if (err) return reject(err);
+                    resolve(result);
                 });
-        });
-    }
+            })
+            .catch((err) => {
+                db.close();
+                return reject({ msg: 'DB:createDocument error!', err: err });
+            });
+    }),
+    retrieveDocuments: (collection) => new Promise((resolve, reject) => {
+        connectDB()
+            .then((db) => {
+                db.collection(collection).find({}).limit(10).toArray((err, docs) => {
+                    if (err) return reject({ err });
+                    db.close();
+                    resolve(docs);
+                });
+            })
+            .catch((err) => {
+                db.close();
+                res.status(500);
+                return reject({ msg: 'DB:retrieveDocuments error!', err });
+            });
+    })
 };

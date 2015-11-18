@@ -75,13 +75,23 @@ module.exports = {
             });
     },
     addWishlistItem ({ user, wishlist, item }, done) {
-        xhr(apiRoutes.addWishlistItem, 'post', { user, wishlist, item})
+        xhr(apiRoutes.wishlistCollection, 'post', { user, wishlist, item})
             .then((response) => {
                 console.info('XHR: addWishlistItem', response, user, item);
                 done(response);
             })
             .catch((e) => {
                 console.warn('XHR: addWishlistItem error', e);
+            });
+    },
+    fetchWishlistItems (done) {
+        xhr(apiRoutes.wishlistCollection, 'get')
+            .then((response) => {
+                console.info('XHR: fetchWishlistItems', response);
+                done(response);
+            })
+            .catch((e) => {
+                console.warn('XHR: fetchWishlistItems error', e);
             });
     }
 

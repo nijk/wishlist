@@ -53,10 +53,34 @@ module.exports = (app) => {
     });
 
     /* API: POST Product URL (Add URL) */
-    app.post(routes.addWishlistItem, (req, res) => {
+    app.post(routes.wishlistCollection, (req, res) => {
         // @todo: validate CSRF?
         // @todo: handle/cleanse request data
-        DB.insertDocument(res, req.body.wishlist, req.body.item);
+
+        const { user, wishlist, item } = req.body;
+
+        DB.createDocument({ user, collection: wishlist, doc: item })
+            .then((result) => {
+                res.json(result.ops)
+            })
+            .catch((error) => {
+                res.status(500);
+                res.json(error);
+            });
+    });
+
+    /* API: POST Product URL (Add URL) */
+    app.get(routes.wishlistCollection, (req, res) => {
+        // @todo: validate CSRF?
+        // @todo: handle/cleanse request data
+        DB.retrieveDocuments('myWishlist')
+            .then((result) => {
+                res.json(result);
+            })
+            .catch((error) => {
+                res.status(500);
+                res.json(error);
+            });
     });
 
     /*app.get('/api/user/:id?', auth.authenticate('local'), function(req, res) {

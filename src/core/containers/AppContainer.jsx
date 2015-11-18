@@ -51,6 +51,10 @@ const AppContainer = React.createClass({
         console.info('onClickItem handler');
     },
 
+    componentDidMount () {
+        core.actions.getWishlistItems();
+    },
+
     _renderAddURL () {
         // Add a default value to the form field
         const props = {

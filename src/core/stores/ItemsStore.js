@@ -32,7 +32,8 @@ const ItemStore = Fluxxor.createStore({
     initialize () {
         this.bindActions(
             events.ADD_URL, this.onAddURL,
-            events.ADD_ITEM, this.onAddItem
+            events.ADD_ITEM, this.onAddItem,
+            events.FETCH_ITEMS_SUCCESS, this.onFetchItems
         );
     },
 
@@ -42,10 +43,10 @@ const ItemStore = Fluxxor.createStore({
 
         // Transform OpenGraph data
         if ( product.opengraph ) {
-            productItem.url = product.data.ogUrl;
-            productItem.title = product.data.ogTitle;
-            productItem.description = product.data.ogDescription;
-            productItem.images = [ product.data.ogImage ];
+            productItem.url = product.data.ogUrl || product.data.url;
+            productItem.title = product.data.ogTitle || product.data.title;
+            productItem.description = product.data.ogDescription || product.data.description;
+            productItem.images = [ product.data.ogImage || product.data.image ];
         }
 
         //Transform scraped data
@@ -95,6 +96,20 @@ const ItemStore = Fluxxor.createStore({
             console.warn(events.ADD_ITEM_FAILURE, payload);
             this.emit( events.ADD_ITEM_FAILURE, payload );
         }
+        this.emit( events.CHANGE );
+    },
+
+    onFetchItems (items) {
+
+        _.each(items, (item) => {
+            if (this.validateProduct(item)) {
+                const itemKey = setItem(item);
+                console.info(events.FETCH_ITEMS_SUCCESS, this.getItem(itemKey), store.items);
+                this.emit( events.FETCH_ITEMS_SUCCESS, this.getItem(itemKey) );
+            } else {
+                console.warn(events.FETCH_ITEMS_FAILURE, this.getItem(itemKey), store.items);
+            }
+        });
         this.emit( events.CHANGE );
     },
 
