@@ -1,5 +1,18 @@
 .add-url {
-  .add-url__label {
-    display: inline;
+    display: flex;
+    flex-direction: row;
+}
+
+.add-url__label {
+  flex-grow: 9;
+
+  input[type="text"] {
+    width: 100%;
+    border-radius: 0;
   }
+}
+
+.add-url__button {
+  flex-grow: 1;
+  border-radius: 0;
 }

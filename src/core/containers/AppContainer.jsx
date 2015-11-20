@@ -13,6 +13,10 @@ const AddURL = require('../components/AddURL');
 const Button = require('../components/Button');
 const WishlistItem = require('../components/WishlistItem');
 
+/* Styles */
+require('style/wishlist');
+/* ------ */
+
 const AppContainer = React.createClass({
     displayName: 'AppContainer',
 
@@ -88,9 +92,8 @@ const AppContainer = React.createClass({
     },
 
     render () {
-        console.info('wishlistItems', this.state.wishlistItems);
         return (
-            <div>
+            <div className="wishlist-items">
                 { this._renderAddURL() }
                 { (this.state.wishlistItemToAdd) ? this._renderAddItem() : null }
                 { (_.size(this.state.wishlistItems) > 0) ? _.map(this.state.wishlistItems, this._renderWishlistItem).reverse() : null }

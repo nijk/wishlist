@@ -8,8 +8,6 @@
 
 const _ = require('lodash');
 const React = require('react');
-const Input = require('./Input');
-const Button = require('./Button');
 const Text = require('./Text');
 
 /* Styles */
@@ -40,11 +38,13 @@ const WishlistItem = React.createClass({
     _renderItem() {
         return (
             <div key={ this.props.key } className="wishlist-item">
-                <a href={ this.props.item.url } onClick={ this.props.item.onClick } >
+                <a className="media" href={ this.props.item.url } onClick={ this.props.item.onClick } >
                     <img src={ this.props.item.images[0].url } title={ this.props.item.title } />
                 </a>
-                <Text tag='h3' text={ this.props.item.title } />
-                <Text tag='p' text={ this.props.item.description } />
+                <div className="wishlist-item__details">
+                    <Text tag='h3' text={ this.props.item.title } />
+                    <Text tag='p' text={ this.props.item.description } />
+                </div>
             </div>
         );
     },
@@ -59,7 +59,6 @@ const WishlistItem = React.createClass({
             }
         }, []);
 
-        console.info('WishlistItem:this.props.item', this.props.item, images);
         return ( images ) ? images : null;
     },
 

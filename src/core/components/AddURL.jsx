@@ -6,11 +6,9 @@
 
 'use strict';
 
-const _ = require('lodash');
 const React = require('react');
 const Input = require('./Input');
 const Button = require('./Button');
-const Text = require('./Text');
 
 /* Styles */
 require('style/add-url');
@@ -31,6 +29,7 @@ const AddURL = React.createClass({
         };
         const btnClasses = {
             'button--disabled': false,
+            'button-primary': true,
             'add-url__button': true
         };
 
@@ -39,7 +38,8 @@ const AddURL = React.createClass({
                 <Input
                     key="addItemInput"
                     type="text"
-                    label="Add an item"
+                    /*label="Add an item"*/
+                    placeholder="Paste your URL here"
                     labelClassNames={ labelClasses }
                     value={ this.props.url }
                     defaultValue={ this.props.inputDefaultValue }

@@ -1,0 +1,24 @@
+.wishlist-items {
+
+}
+
+.wishlist-item {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 2rem;
+  box-shadow: 0 0 6px #ccc;
+
+  .media {
+    padding: 2.5rem;
+    min-width: 20rem;
+  }
+}
+
+.wishlist-item__details {
+  padding: 2.5rem 5rem;
+  background: #f0f0f0;
+
+  p {
+    margin: 0;
+  }
+}

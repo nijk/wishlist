@@ -15,6 +15,7 @@ const AppContainer = require('./AppContainer');
 
 /* Styles */
 require('skeleton-sass');
+require('../../style/media');
 /* ------ */
 
 const App = {

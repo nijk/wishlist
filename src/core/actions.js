@@ -8,7 +8,6 @@
 
 const API = require('./api');
 const events = require('./events');
-const Promise = require('native-promise-only');
 
 module.exports = {
     appStart () {
