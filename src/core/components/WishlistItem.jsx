@@ -21,6 +21,7 @@ const WishlistItem = React.createClass({
         mode: React.PropTypes.oneOf(['display', 'edit']),
         item: React.PropTypes.shape({
             title: React.PropTypes.string.isRequired,
+            siteName: React.PropTypes.string,
             description: React.PropTypes.string.isRequired,
             url: React.PropTypes.string.isRequired,
             images: React.PropTypes.arrayOf(
@@ -38,12 +39,19 @@ const WishlistItem = React.createClass({
     _renderItem() {
         return (
             <div key={ this.props.key } className="wishlist-item">
-                <a className="media" href={ this.props.item.url } onClick={ this.props.item.onClick } >
+                <a className="media" href={ this.props.item.url } target="_blank" onClick={ this.props.item.onClick }>
                     <img src={ this.props.item.images[0].url } title={ this.props.item.title } />
                 </a>
                 <div className="wishlist-item__details">
                     <Text tag='h3' text={ this.props.item.title } />
                     <Text tag='p' text={ this.props.item.description } />
+                    {
+                    (this.props.item.siteName) ?
+                        <a href={ this.props.item.url } target="_blank">
+                            <Text tag="p" text={ `From ${this.props.item.siteName}` } />
+                        </a>
+                    : null
+                    }
                 </div>
             </div>
         );

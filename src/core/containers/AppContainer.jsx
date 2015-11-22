@@ -83,7 +83,6 @@ const AppContainer = React.createClass({
     },
 
     _renderWishlistItem (item, index) {
-        console.info(`_renderWishlistItem #${index}`, item);
         return <WishlistItem
                 key={ `wishlist-item-${index + 1}` }
                 mode="display"
@@ -96,7 +95,7 @@ const AppContainer = React.createClass({
             <div className="wishlist-items">
                 { this._renderAddURL() }
                 { (this.state.wishlistItemToAdd) ? this._renderAddItem() : null }
-                { (_.size(this.state.wishlistItems) > 0) ? _.map(this.state.wishlistItems, this._renderWishlistItem).reverse() : null }
+                { (_.size(this.state.wishlistItems) > 0) ? _.map(this.state.wishlistItems, this._renderWishlistItem) : null }
             </div>
         );
     }

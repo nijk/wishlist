@@ -44,6 +44,7 @@ const ItemStore = Fluxxor.createStore({
         // Transform OpenGraph data
         if ( product.opengraph ) {
             productItem.url = product.data.ogUrl || product.data.url;
+            productItem.siteName = product.data.ogSiteName || product.data.siteName;
             productItem.title = product.data.ogTitle || product.data.title;
             productItem.description = product.data.ogDescription || product.data.description;
             productItem.images = [ product.data.ogImage || product.data.image ];
