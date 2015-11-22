@@ -65,7 +65,8 @@ module.exports = {
             });
     },
     fetchProduct (url, done) {
-        xhr(apiRoutes.productURL, 'post', { url })
+        const route = apiRoutes.productURL.replace(':url', encodeURIComponent(url));
+        xhr(route, 'get', { url })
             .then((response) => {
                 console.info('XHR: fetchProduct', url, response);
                 done(response);
@@ -75,9 +76,14 @@ module.exports = {
             });
     },
     addWishlistItem ({ user, wishlist, item }, done) {
-        xhr(apiRoutes.wishlistCollection, 'post', { user, wishlist, item})
+        const url = apiRoutes.collection
+            .replace(':resource', 'wishlist')
+            .replace(':collection', 'myWishlist')
+            .replace('/:type?', '')
+            .replace('/:id?', '');
+
+        xhr(url, 'post', { user, wishlist, item })
             .then((response) => {
-                console.info('XHR: addWishlistItem', response, user, item);
                 done(response);
             })
             .catch((e) => {
@@ -85,13 +91,19 @@ module.exports = {
             });
     },
     fetchWishlistItems (done) {
-        xhr(apiRoutes.wishlistCollection, 'get')
+        const url = apiRoutes.collection
+            .replace(':resource', 'wishlist')
+            .replace(':collection', 'myWishlist')
+            .replace(':type?', 'page')
+            .replace(':id?', pageNum);
+
+        xhr(url, 'get')
             .then((response) => {
-                console.info('XHR: fetchWishlistItems', response);
+                console.info('XHR: fetchWishlistItemsByPage', response);
                 done(response);
             })
             .catch((e) => {
-                console.warn('XHR: fetchWishlistItems error', e);
+                console.warn('XHR: fetchWishlistItemsByPage error', e);
             });
     }
 

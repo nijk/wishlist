@@ -36,6 +36,6 @@ module.exports = {
                 this.dispatch(events.FETCH_ITEMS_SUCCESS, items.body);
             }
         };
-        API.fetchWishlistItems(callback);
+        API.fetchWishlistItems(1, callback);
     }
 };
