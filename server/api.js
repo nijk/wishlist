@@ -14,30 +14,36 @@ const auth = require('./auth');
 const routes = require('../routes.api.js');
 
 // @todo: log errors server-side
-function errorHandler (err, msg) {
-    return { msg, err };
+function errorHandler (err, errCode, msg, res) {
+    const errName = 'API Error';
+    const errResponse = { msg: `${errName}: ${err.msg}`, status: errCode, err };
+    console.warn(errName, errResponse);
+    res.status(errCode);
+    res.json(errResponse);
 }
 
 function getUserObject (req, res, id) {
-    (id) ? res.json({ username: id }) : res.json(errorHandler(req, 'User not found'));
-};
+    (id) ? res.json({ username: id }) : errorHandler(req, 500, 'User not found', res);
+}
 
 module.exports = (app) => {
     /* API: GET CSRF Token */
     app.get(routes.token, csrf, (req, res) => res.json({ token: req.csrfToken() }) );
 
-    /* API: POST Product URL (Add URL) */
-    app.post(routes.productURL, (req, res) => { // @todo: validate CSRF?
+    /* API: GET Product URL (Fetch URL data: OG Tags/Scraped Data) */
+    app.get(routes.productURL, (req, res) => { // @todo: validate CSRF?
+        const url = decodeURIComponent(req.params.url);
         // Scrape from OpenGraph tags
-        ogScraper({ url: req.body.url, timeout: 1000 }, (err, result) => {
+        ogScraper({ url, timeout: 5000 }, (err, result) => {
             result.opengraph = false;
             result.scraped = false;
 
             if (!err) {
                 result.opengraph = true;
+                //console.info('OG Data', result);
                 res.json( result );
             } else {
-                res.json(errorHandler(err, 'API Error: error collecting resources'));
+                errorHandler(err, 500, `Could not collect product resources from: ${url}`, res);
             }
         });
 
@@ -52,8 +58,8 @@ module.exports = (app) => {
         });*/
     });
 
-    /* API: POST Product URL (Add URL) */
-    app.post(routes.wishlistCollection, (req, res) => {
+    /* API: POST Wishlist Collection (Save Wishlist item) */
+    app.post(routes.collection, (req, res) => {
         // @todo: validate CSRF?
         // @todo: handle/cleanse request data
 
@@ -63,23 +69,29 @@ module.exports = (app) => {
             .then((result) => {
                 res.json(result.ops)
             })
-            .catch((error) => {
-                res.status(500);
-                res.json(error);
+            .catch((err) => {
+                errorHandler(err, 500, 'Could not create document', res);
             });
     });
 
-    /* API: POST Product URL (Add URL) */
-    app.get(routes.wishlistCollection, (req, res) => {
+    /* API: GET Wishlist Collection By Page (Fetch Wishlist items by page) */
+    app.get(routes.collection, (req, res) => {
+        let pageNum = 1;
+
+        console.info('collection', req.params);
+
+        if ('page' === req.params.type && req.params.id) {
+            pageNum = req.params.id;
+        }
+
         // @todo: validate CSRF?
         // @todo: handle/cleanse request data
-        DB.retrieveDocuments('myWishlist')
+        DB.retrieveDocuments(req.params.collection, pageNum)
             .then((result) => {
                 res.json(result);
             })
-            .catch((error) => {
-                res.status(500);
-                res.json(error);
+            .catch((err) => {
+                errorHandler(err, 500, 'Could not retrieve documents', res);
             });
     });
 

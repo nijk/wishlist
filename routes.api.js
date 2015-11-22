@@ -4,8 +4,8 @@
 
 module.exports = {
     token: '/api/token',
-    productURL: '/api/product/url',
-    wishlistCollection: '/api/wishlist/myWishlist',
+    productURL: '/api/product/:url',
+    collection: '/api/:resource/:collection/:type?/:id?',
     user: '/api/user/',
     login: '/api/login'
 };
