@@ -10,7 +10,7 @@ const logger = require('morgan');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
 const cookieParser = require('cookie-parser');
-const session = require('express-session');
+const expressSession = require('express-session');
 const errorHandler = require('errorhandler');
 const helmet = require('helmet');
 const passport = require('passport');
@@ -33,15 +33,17 @@ module.exports = (app) => {
     /* Express */
     app.use(methodOverride());
     app.use(cookieParser());
-    app.use(session({
+    app.use(expressSession({
         secret: "notagoodsecret",
-        cookie: { httpOnly: true }
+        resave: false,
+        saveUninitialized: true,
+        cookie: { httpOnly: false }
     }));
     app.use(expressPromise());
 
     /* Passport */
-    app.use(passport.initialize());
-    app.use(passport.session());
+    /*app.use(passport.initialize());
+    app.use(passport.session());*/
 
     /* Static Assets */
     app.use(serveStatic('dist', serveStaticOpts));

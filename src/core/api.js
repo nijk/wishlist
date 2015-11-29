@@ -90,7 +90,7 @@ module.exports = {
                 console.warn('XHR: addWishlistItem error', e);
             });
     },
-    fetchWishlistItems (done) {
+    fetchWishlistItems (pageNum, done) {
         const url = apiRoutes.collection
             .replace(':resource', 'wishlist')
             .replace(':collection', 'myWishlist')

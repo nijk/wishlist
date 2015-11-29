@@ -51,6 +51,7 @@
     "method-override": "^2.3.5",
     "mocha": "^2.3.4",
     "mocha-babel": "^3.0.0",
+    "mockery": "^1.4.0",
     "morgan": "^1.6.1",
     "node-sass": "^3.4.1",
     "path": "^0.12.7",
@@ -61,7 +62,9 @@
     "sinon": "^1.17.2",
     "skeleton-sass": "0.0.1",
     "style-loader": "^0.13.0",
+    "superagent": "^1.4.0",
     "supertest": "^1.1.0",
+    "supertest-session": "^2.0.0",
     "webpack": "^1.12.2",
     "webpack-dev-server": "^1.12.1"
   },

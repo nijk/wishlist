@@ -6,6 +6,7 @@
 
 'use strict';
 
+const _ = require('lodash');
 const DB = require('./db');
 const csrf = require('csurf')();
 const ogScraper = require('open-graph-scraper');
@@ -33,33 +34,20 @@ module.exports = (app) => {
     /* API: GET Product URL (Fetch URL data: OG Tags/Scraped Data) */
     app.get(routes.productURL, (req, res) => { // @todo: validate CSRF?
         const url = decodeURIComponent(req.params.url);
+        const resultDefaults = { opengraph: false, scraped: false };
+
         // Scrape from OpenGraph tags
         ogScraper({ url, timeout: 5000 }, (err, result) => {
-            result.opengraph = false;
-            result.scraped = false;
-
-            if (!err) {
-                result.opengraph = true;
-                //console.info('OG Data', result);
-                res.json( result );
-            } else {
-                errorHandler(err, 500, `Could not collect product resources from: ${url}`, res);
-            }
+            if (err) errorHandler(err, 500, `Could not collect product resources from: ${url}`, res);
+            res.json(_.extend(result, resultDefaults, { opengraph: true }));
         });
 
-        // Scrape for data
-        /*ineed.collect.images.from(req.body.url, function (err, response, result) {
-            if ( !err ) {
-                console.log(result);
-                res.json( result );
-            } else {
-                errorHandler(req, res, 'error collecting resources');
-            }
-        });*/
+        // @todo: Scrape for data if OG returns no useful results
     });
 
     /* API: POST Wishlist Collection (Save Wishlist item) */
     app.post(routes.collection, (req, res) => {
+        // @todo: validate user/wishlist
         // @todo: validate CSRF?
         // @todo: handle/cleanse request data
 
