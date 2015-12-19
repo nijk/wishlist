@@ -33,12 +33,11 @@ const xhr = (url, type = 'get', data = {}) => new Promise((resolve, reject) => {
             break;
     }
 
-    request.set('Accept', 'application/json; charset=utf-8');
-
     if (csrfToken) {
         request.set('X-CSRF-TOKEN', csrfToken);
     }
 
+    request.set('Accept', 'application/json; charset=utf-8');
     request.end(function ( err, response ) {
         if ( !err ) {
             response.body = JSON.parse( response.text );
@@ -55,10 +54,11 @@ const xhr = (url, type = 'get', data = {}) => new Promise((resolve, reject) => {
 
 module.exports = {
     fetchCSRFToken () {
-        xhr(apiRoutes.token)
-            .then((response) => {
-                csrfToken = response.body.token;
-                // console.info('fetchCSRFToken', response.body.token);
+        return xhr(apiRoutes.token)
+            .then(({ body }) => {
+                csrfToken = body.token;
+                //console.info('fetchCSRFToken csrfToken', csrfToken, body.token);
+                return csrfToken;
             })
             .catch((e) => {
                 console.warn('XHR: fetchCSRFToken error', e);
@@ -66,7 +66,7 @@ module.exports = {
     },
     fetchProduct (url, done) {
         const route = apiRoutes.productURL.replace(':url', encodeURIComponent(url));
-        xhr(route, 'get', { url })
+        return xhr(route, 'get', { url })
             .then((response) => {
                 console.info('XHR: fetchProduct', url, response);
                 done(response);
@@ -76,13 +76,14 @@ module.exports = {
             });
     },
     addWishlistItem ({ user, wishlist, item }, done) {
+        //console.info('addWishlistItem csrfToken', csrfToken);
         const url = apiRoutes.collection
             .replace(':resource', 'wishlist')
             .replace(':collection', 'myWishlist')
             .replace('/:type?', '')
             .replace('/:id?', '');
 
-        xhr(url, 'post', { user, wishlist, item })
+        return xhr(url, 'post', { user, wishlist, item })
             .then((response) => {
                 done(response);
             })
@@ -90,21 +91,22 @@ module.exports = {
                 console.warn('XHR: addWishlistItem error', e);
             });
     },
-    fetchWishlistItems (pageNum, done) {
+    fetchWishlistItems (pageNum) {
         const url = apiRoutes.collection
             .replace(':resource', 'wishlist')
             .replace(':collection', 'myWishlist')
             .replace(':type?', 'page')
             .replace(':id?', pageNum);
 
-        xhr(url, 'get')
-            .then((response) => {
-                console.info('XHR: fetchWishlistItemsByPage', response);
-                done(response);
-            })
-            .catch((e) => {
-                console.warn('XHR: fetchWishlistItemsByPage error', e);
+        const fetchWishlist = (resolve, reject) => xhr(url, 'get').then(resolve, reject);
+
+        if (csrfToken) {
+            return new Promise(fetchWishlist);
+        } else {
+            return new Promise((resolve, reject) => {
+                this.fetchCSRFToken().then(() => fetchWishlist(resolve, reject), reject);
             });
+        }
     }
 
     /*,

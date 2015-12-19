@@ -6,13 +6,22 @@
 
 'use strict';
 
+// const core = require('./Core');
 const API = require('./api');
 const events = require('./events');
 
+const errorCallback = (e) => {
+    // @todo: throw user message
+};
+
 module.exports = {
     appStart () {
-        API.fetchCSRFToken();
-        this.dispatch(events.APP_START, {});
+        API.fetchCSRFToken()
+            .then((token) => {
+                //console.info('API.fetchCSRFToken().then()', token);
+                this.dispatch(events.SET_CSRF_TOKEN, token);
+                //this.dispatch(events.APP_START, {});
+            }, errorCallback);
     },
     addURL (url) {
         const callback = (product) => {
@@ -31,11 +40,12 @@ module.exports = {
         API.addWishlistItem({ user: 'nijk', wishlist: 'myWishlist', item }, callback);
     },
     getWishlistItems () {
-        const callback = (items) => {
-            if (items) {
-                this.dispatch(events.FETCH_ITEMS_SUCCESS, items.body);
-            }
-        };
-        API.fetchWishlistItems(1, callback);
+        API.fetchWishlistItems(1)
+            .then(({ body }) => {
+                if (body) {
+                    console.info('API.fetchWishlistItems(1).then() items.body', body);
+                    this.dispatch(events.FETCH_ITEMS_SUCCESS, body);
+                }
+            }, errorCallback);
     }
 };

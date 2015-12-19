@@ -105,7 +105,7 @@ const ItemStore = Fluxxor.createStore({
         _.each(items, (item) => {
             if (this.validateProduct(item)) {
                 const itemKey = setItem(item);
-                console.info(events.FETCH_ITEMS_SUCCESS, this.getItem(itemKey), store.items);
+                //console.info(events.FETCH_ITEMS_SUCCESS, this.getItem(itemKey), store.items);
                 this.emit( events.FETCH_ITEMS_SUCCESS, this.getItem(itemKey) );
             } else {
                 console.warn(events.FETCH_ITEMS_FAILURE, this.getItem(itemKey), store.items);

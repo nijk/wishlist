@@ -10,7 +10,8 @@ const Fluxxor = require('fluxxor');
 const events = require('../events');
 
 let store = {
-    started: false
+    started: false,
+    csrfToken: undefined
 };
 
 const CoreStore = Fluxxor.createStore({

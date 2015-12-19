@@ -18,14 +18,12 @@ require('skeleton-sass');
 require('../../style/media');
 /* ------ */
 
-const App = {
+module.exports = {
     mount () {
         ReactDOM.render(
-            <AppContainer flux={ core } />,
+            <AppContainer flux={ core }/>,
             document.getElementById('app-container')
         );
-        core.actions.appStart();
+        //setTimeout(core.actions.appStart, 1000);
     }
 };
-
-module.exports = App;

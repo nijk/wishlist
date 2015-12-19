@@ -10,7 +10,6 @@ const Fluxxor = require('fluxxor');
 const React = require('react');
 const CoreStore = require('./stores/CoreStore');
 const ItemsStore = require('./stores/ItemsStore');
-const actions = require('./actions');
 
 let core = new Fluxxor.Flux();
 
@@ -23,7 +22,7 @@ _.extend(core, {
     StoreWatchMixin: Fluxxor.StoreWatchMixin
 });
 
-core.addActions(actions);
+core.addActions(require('./actions'));
 
 core.addStores({
     'Core': new CoreStore(),

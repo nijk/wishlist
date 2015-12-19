@@ -10,14 +10,14 @@ const _ = require('lodash');
 const DB = require('./db');
 const csrf = require('csurf')();
 const ogScraper = require('open-graph-scraper');
-const ineed = require('ineed');
-const auth = require('./auth');
+// const ineed = require('ineed');
+// const auth = require('./auth');
 const routes = require('../routes.api.js');
 
 // @todo: log errors server-side
 function errorHandler (err, errCode, msg, res) {
     const errName = 'API Error';
-    const errResponse = { msg: `${errName}: ${err.msg}`, status: errCode, err };
+    const errResponse = { msg: `${errName}: ${msg}`, status: errCode, err };
     console.warn(errName, errResponse);
     res.status(errCode);
     res.json(errResponse);
@@ -38,7 +38,7 @@ module.exports = (app) => {
 
         // Scrape from OpenGraph tags
         ogScraper({ url, timeout: 5000 }, (err, result) => {
-            if (err) errorHandler(err, 500, `Could not collect product resources from: ${url}`, res);
+            if (err) return errorHandler(err, 500, `Could not collect product resources from: ${url}. Reason: ${result.err}`, res);
             res.json(_.extend(result, resultDefaults, { opengraph: true }));
         });
 
@@ -63,10 +63,10 @@ module.exports = (app) => {
     });
 
     /* API: GET Wishlist Collection By Page (Fetch Wishlist items by page) */
-    app.get(routes.collection, (req, res) => {
+    app.get(routes.collection, csrf, (req, res) => {
         let pageNum = 1;
 
-        console.info('collection', req.params);
+        // console.info('collection', req.params);
 
         if ('page' === req.params.type && req.params.id) {
             pageNum = req.params.id;

@@ -14,6 +14,7 @@ const defaultEvents = {
 
 module.exports = _.extend(defaultEvents, keymirror({
     APP_START: null,
+    SET_CSRF_TOKEN: null,
 
     ADD_URL: null,
     ADD_URL_SUCCESS: null,

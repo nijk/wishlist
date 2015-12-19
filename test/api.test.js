@@ -13,7 +13,6 @@ const chaiHttp = require('chai-http');
 const expect = chai.expect;
 const mockery = require('mockery');
 const app = require('express')();
-/*const session = require('supertest-session');*/
 
 chai.use(chaiHttp);
 
@@ -22,40 +21,40 @@ const endAsyncTest = (next) => ((err, res) => {
     next(err, res);
 });
 
-
 describe('API', () => {
-    let agent, stubs = {};
+    let agent, stubs;
 
     before(() => {
-        mockery.enable({ warnOnReplace: false, warnOnUnregistered: false, useCleanCache: true })
+        mockery.enable({ warnOnReplace: true, warnOnUnregistered: false, useCleanCache: true });
     });
-    after(() => mockery.disable());
+    after(mockery.disable);
 
     beforeEach(() => {
-        // Setup mocks
-        const ogScraperMock = ({}, done) => {
-            done(null, {
+        stubs = {
+            ogScraperError: sandbox.stub().returns(null),
+            ogScraperResult: sandbox.stub().returns({
                 success: true,
                 opengraph: true,
-                data: { ogSiteName: 'SoundCloud' }
+                data: { ogSiteName: 'FooBar' }
             })
         };
 
-        // Register mocks
+        // Setup mocks
+        const ogScraperMock = ({}, callback) => callback(stubs.ogScraperError(), stubs.ogScraperResult());
         mockery.registerMock('open-graph-scraper', ogScraperMock);
+        mockery.registerMock('./db', {});
 
-        // Setup app with API & Config, adding mocks from above
+        // Setup app with API & Config, adding mocks
         require('../server/config')(app);
         require('../server/api')(app);
 
         // Setup app fake static response to get session cookie
-        app.get('/', (req, res) => {
-            res.json({});
-        });
-        
+        app.get('/', (req, res) => res.json({}) );
+
         // Setup Chai Agent to use App configuration
-        agent = chai.request.agent(app);
-        
+        if (!agent) {
+            agent = chai.request.agent(app);
+        }
     });
 
     it('should set a session cookie', (done) => {
@@ -79,7 +78,7 @@ describe('API', () => {
 
     describe('Fetch Product from URL', () => {
         it('should accept a URI encoded param', (done) => {
-            const url = encodeURIComponent('http://google.com');
+            const url = encodeURIComponent('http://foo.bar');
             agent.get(`/api/product/${url}`)
                 .end((err, res) => {
                     expect(res).to.have.status(200);
@@ -88,19 +87,18 @@ describe('API', () => {
         });
 
         it('should return an object containing Open Graph data', (done) => {
-            const url = encodeURIComponent('http://www.soundcloud.com');
+            const url = encodeURIComponent('http://foo.bar');
             agent.get(`/api/product/${url}`)
                 .end((err, res) => {
                     expect(res).to.have.status(200);
-                    expect(res.body.data).to.have.deep.property('ogSiteName', 'SoundCloud');
+                    expect(res.body.data).to.have.deep.property('ogSiteName', 'FooBar');
                     endAsyncTest(done)(err, res);
                 });
         });
 
         it('should return 500 on failure', (done) => {
-            mockery.deregisterMock('open-graph-scraper');
-            mockery.registerMock('open-graph-scraper', ({}, done) => done({ status: 500 }));
-            // @fixme: no way to override mocks in specs :(
+            stubs.ogScraperError.returns({ status: 500 });
+            stubs.ogScraperResult.returns({ err: 'Forced 500 error' });
 
             const url = encodeURIComponent('http://foo.bar');
             agent.get(`/api/product/${url}`)
