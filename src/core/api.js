@@ -90,24 +90,24 @@ const API = {
             })
             .catch((e) => console.warn('XHR: fetchProduct error', e));
     },
-    addWishlistItem (item) {
+    addProduct (product) {
         const url = enums.routes.collection
             .replace(':resource', 'wishlists')
             .replace(':collection?', wishlist)
             .replace('/:type?', '')
             .replace('/:id?', '');
 
-        const addWishlistItem = (resolve, reject) => {
-            xhr(url, 'post', { user, wishlist, item })
+        const addProduct = (resolve, reject) => {
+            xhr(url, 'post', { user, wishlist, item: product })
                 .then(resolve)
                 .catch((e) => {
-                    console.warn('XHR: addWishlistItem error', e);
+                    console.warn('XHR: addProduct error', e);
                     reject(e);
                 });
         };
-        return preflightPOST(addWishlistItem);
+        return preflightPOST(addProduct);
     },
-    fetchWishlistItems (pageNum) {
+    fetchProducts (pageNum) {
         const url = enums.routes.collection
             .replace(':resource', 'wishlists')
             .replace(':collection?', wishlist)

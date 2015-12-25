@@ -20,13 +20,13 @@ module.exports = _.extend(defaultEvents, keymirror({
     ADD_URL_SUCCESS: null,
     ADD_URL_FAILURE: null,
 
-    ADD_ITEM: null,
-    ADD_ITEM_SUCCESS: null,
-    ADD_ITEM_FAILURE: null,
+    ADD_PRODUCT: null,
+    ADD_PRODUCT_SUCCESS: null,
+    ADD_PRODUCT_FAILURE: null,
 
-    FETCH_ITEMS: null,
-    FETCH_ITEMS_SUCCESS: null,
-    FETCH_ITEMS_FAILURE: null,
+    FETCH_PRODUCTS: null,
+    FETCH_PRODUCTS_SUCCESS: null,
+    FETCH_PRODUCTS_FAILURE: null,
 
     ADD_WISHLIST: null,
     ADD_WISHLIST_SUCCESS: null,

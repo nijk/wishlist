@@ -45,27 +45,27 @@ const actions = {
         };
         API.fetchProduct(url, callback);
     },
-    addWishlistItem (item) {
-        const event = events.ADD_ITEM;
-        this.dispatch(event, item);
+    addProduct (product) {
+        const event = events.ADD_PRODUCT;
+        this.dispatch(event, product);
 
-        API.addWishlistItem(item)
+        API.addProduct(product)
             .then(({ body }) => {
                 eventFactory.bind(this, event, eventsEnums.SUCCESS, body[0])();
-                actions.getWishlistItems.bind(this)();
+                actions.getProducts.bind(this)();
             },
             (e) => {
                 eventFactory.bind(this, event, eventsEnums.FAILURE, {})();
-                errorCallback(e, 'addWishlistItem failure');
+                errorCallback(e, 'addProduct failure');
             });
     },
-    getWishlistItems () {
-        const event = events.FETCH_ITEMS;
+    getProducts () {
+        const event = events.FETCH_PRODUCTS;
         this.dispatch(event);
 
-        API.fetchWishlistItems(1)
+        API.fetchProducts(1)
             .then(({ body }) => {
-                console.info('API.fetchWishlistItems(1).then() items.body', body);
+                console.info('API.fetchProducts(1).then() products.body', body);
                 eventFactory.bind(this, event, eventsEnums.SUCCESS, body)();
             }, errorCallback);
     },

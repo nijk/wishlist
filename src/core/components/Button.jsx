@@ -9,7 +9,7 @@
 const React = require('react');
 const classnames = require('classnames');
 
-const AddItem = React.createClass({
+const AddProduct = React.createClass({
     displayName: 'Button',
 
     propTypes: {
@@ -32,4 +32,4 @@ const AddItem = React.createClass({
     }
 });
 
-module.exports = AddItem;
+module.exports = AddProduct;

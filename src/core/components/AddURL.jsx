@@ -1,5 +1,5 @@
 /**
- * wishlist - core.components/AddItem
+ * wishlist - core.components/AddProduct
  *
  * Created by nijk on 08/11/15.
  */
@@ -36,9 +36,9 @@ const AddURL = React.createClass({
         return (
             <div key={ this.props.key } className="add-url">
                 <Input
-                    key="addItemInput"
+                    key="addProductInput"
                     type="text"
-                    /*label="Add an item"*/
+                    /*label="Add an Product"*/
                     placeholder="Paste your URL here"
                     labelClassNames={ labelClasses }
                     value={ this.props.url }
@@ -46,7 +46,7 @@ const AddURL = React.createClass({
                     onChange={ this.props.onHandleInput }
                 />
                 <Button
-                    key="addItemButton"
+                    key="addProductButton"
                     text="Add"
                     classNames={ btnClasses }
                     onClick={ this.props.onAdd }

@@ -15,7 +15,7 @@ const paths = require('../../../enums.paths');
 // Components
 const AddURL = require('../components/AddURL');
 const Button = require('../components/Button');
-const WishlistItem = require('../components/WishlistItem');
+const Product = require('../components/Product');
 const List = require('../components/List');
 
 /* Styles */
@@ -27,15 +27,18 @@ const AppContainer = React.createClass({
 
     mixins: [
         core.FluxMixin,
-        core.StoreWatchMixin('Core', 'Items', 'Wishlists')
+        core.StoreWatchMixin('Core', 'Products', 'Wishlists')
     ],
 
     getStateFromFlux () {
+        const productsStore = core.store('Products');
+        const wishlistsStore = core.store('Wishlists');
+
         return {
             started: core.store('Core').hasStarted(),
-            wishlists: core.store('Wishlists').getWishlists(),
-            wishlistItemToAdd: core.store('Items').getItemToAdd(),
-            wishlistItems: core.store('Items').getItems(),
+            wishlists: wishlistsStore.getWishlists(),
+            productToAdd: productsStore.getProductToAdd(),
+            products: productsStore.getProducts(),
             addURL: ''
         };
     },
@@ -51,18 +54,18 @@ const AppContainer = React.createClass({
         this.setState({ addURL: url });
     },
 
-    onAddItem (e) {
+    onAddProduct (e) {
         e.preventDefault();
-        core.actions.addWishlistItem( this.state.wishlistItemToAdd );
+        core.actions.addProduct( this.state.productToAdd );
     },
 
-    onClickItem (e) {
+    onClickProduct (e) {
         e.preventDefault();
-        console.info('onClickItem handler');
+        console.info('onClickProduct handler');
     },
 
     componentDidMount () {
-        core.actions.getWishlistItems();
+        core.actions.getProducts();
         core.actions.getWishlists();
     },
 
@@ -75,30 +78,44 @@ const AppContainer = React.createClass({
         return <AddURL key="add-url" onHandleInput={ this.onHandleInputForAddURL } onAdd={ this.onAddURL } { ...props } />
     },
 
-    _renderAddItem () {
+    _renderAddProduct () {
         return (
-            <div classNames="add-item">
-                <WishlistItem
-                    key="add-item"
+            <div classNames="add-product">
+                <Product
+                    key="add-product"
                     mode="display"
-                    onAddItem={ this.onAddItem }
-                    item={ this.state.wishlistItemToAdd }
+                    onAddProduct={ this.onAddProduct }
+                    product={ this.state.productToAdd }
                 />
-                <Button key="add-item-save" text="Save" onClick={ this.onAddItem } />
+                <Button key="add-product-save" text="Save" onClick={ this.onAddProduct } />
             </div>
         );
     },
 
     _renderWishlist () {
-        const wishlistItems = _.map(this.state.wishlistItems, (item, index) => {
-            return <WishlistItem
-                key={ `wishlist-item-${index + 1}` }
+        const actions = [{
+            active: true,
+            type: 'edit',
+            text: 'Edit product'
+        },{
+            active: true,
+            type: 'delete',
+            text: 'Remove'
+        }];
+
+        const products = _.map(this.state.products, (product, index) => {
+
+            // @todo: check ProductStore for a product that might be being edited, if so:
+            // Change: (actions) edit > save, (mode) display > editing
+
+            return <Product
+                key={ `product-${index + 1}` }
                 mode="display"
-                item={ _.merge(_.clone(item), { onClick: this.onClickItem }) }
+                product={ _.merge(_.clone(product), { onClick: this.onClickProduct, actions }) }
             />;
         });
 
-        return <List key="products" items={ wishlistItems } />
+        return <List key="products" items={ products } />
     },
 
     _renderWishlists () {
@@ -116,12 +133,12 @@ const AppContainer = React.createClass({
 
     render () {
         return (
-            <div className="wishlist-items">
+            <div className="wishlist-products">
                 { (_.size(this.state.wishlists) > 0) ? this._renderWishlists() : null }
 
                 { this._renderAddURL() }
-                { (this.state.wishlistItemToAdd) ? this._renderAddItem() : null }
-                { (_.size(this.state.wishlistItems) > 0) ? this._renderWishlist() : null }
+                { (this.state.productToAdd) ? this._renderAddProduct() : null }
+                { (_.size(this.state.products) > 0) ? this._renderWishlist() : null }
             </div>
         );
     }
