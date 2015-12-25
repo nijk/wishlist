@@ -6,12 +6,17 @@
 
 'use strict';
 
+// Dependencies
 const _ = require('lodash');
 const core = require('core/Core');
 const React = require('react');
+const paths = require('../../../enums.paths');
+
+// Components
 const AddURL = require('../components/AddURL');
 const Button = require('../components/Button');
 const WishlistItem = require('../components/WishlistItem');
+const List = require('../components/List');
 
 /* Styles */
 require('style/wishlist');
@@ -22,12 +27,13 @@ const AppContainer = React.createClass({
 
     mixins: [
         core.FluxMixin,
-        core.StoreWatchMixin('Core', 'Items')
+        core.StoreWatchMixin('Core', 'Items', 'Wishlists')
     ],
 
     getStateFromFlux () {
         return {
             started: core.store('Core').hasStarted(),
+            wishlists: core.store('Wishlists').getWishlists(),
             wishlistItemToAdd: core.store('Items').getItemToAdd(),
             wishlistItems: core.store('Items').getItems(),
             addURL: ''
@@ -57,6 +63,7 @@ const AppContainer = React.createClass({
 
     componentDidMount () {
         core.actions.getWishlistItems();
+        core.actions.getWishlists();
     },
 
     _renderAddURL () {
@@ -82,20 +89,39 @@ const AppContainer = React.createClass({
         );
     },
 
-    _renderWishlistItem (item, index) {
-        return <WishlistItem
+    _renderWishlist () {
+        const wishlistItems = _.map(this.state.wishlistItems, (item, index) => {
+            return <WishlistItem
                 key={ `wishlist-item-${index + 1}` }
                 mode="display"
                 item={ _.merge(_.clone(item), { onClick: this.onClickItem }) }
             />;
+        });
+
+        return <List key="products" items={ wishlistItems } />
+    },
+
+    _renderWishlists () {
+        const wishlists = _.map(this.state.wishlists, (item) => {
+            return {
+                name: item.name,
+                link: {
+                    url: paths.wishlists.wishlist.replace(':title', item.name.toLowerCase())
+                }
+            }
+        });
+
+        return <List key="wishlists" items={ wishlists } />;
     },
 
     render () {
         return (
             <div className="wishlist-items">
+                { (_.size(this.state.wishlists) > 0) ? this._renderWishlists() : null }
+
                 { this._renderAddURL() }
                 { (this.state.wishlistItemToAdd) ? this._renderAddItem() : null }
-                { (_.size(this.state.wishlistItems) > 0) ? _.map(this.state.wishlistItems, this._renderWishlistItem) : null }
+                { (_.size(this.state.wishlistItems) > 0) ? this._renderWishlist() : null }
             </div>
         );
     }

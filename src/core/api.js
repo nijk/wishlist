@@ -2,9 +2,11 @@
 
 const superagent = require('superagent');
 const Promise = require('native-promise-only');
-const apiRoutes = require('../../routes.api.js');
+const enums = require('../../enums.api.js');
 
 let csrfToken;
+let wishlist = 'fooBar';
+let user = 'nijk';
 
 /**
  * Supply error name based on type i.e 4xx, 5xx
@@ -25,15 +27,21 @@ function nameError( errType ) {
 const xhr = (url, type = 'get', data = {}) => new Promise((resolve, reject) => {
     let request;
     switch (type) {
+        case 'delete':
+            // request = superagent.delete(url, data);
+            break;
         case 'post':
             request = superagent.post(url, data);
+            break;
+        case 'put':
+            request = superagent.put(url, data);
             break;
         default:
             request = superagent.get(url);
             break;
     }
 
-    if (csrfToken) {
+    if ('get' !== type && csrfToken) {
         request.set('X-CSRF-TOKEN', csrfToken);
     }
 
@@ -52,12 +60,21 @@ const xhr = (url, type = 'get', data = {}) => new Promise((resolve, reject) => {
     });
 });
 
-module.exports = {
+const preflightPOST = function (done) {
+    if (!csrfToken) {
+        return new Promise((resolve, reject) => {
+            API.fetchCSRFToken().then(() => done(resolve, reject), reject);
+        });
+    }
+
+    return new Promise(done);
+};
+
+const API = {
     fetchCSRFToken () {
-        return xhr(apiRoutes.token)
+        return xhr(enums.routes.auth.token)
             .then(({ body }) => {
                 csrfToken = body.token;
-                //console.info('fetchCSRFToken csrfToken', csrfToken, body.token);
                 return csrfToken;
             })
             .catch((e) => {
@@ -65,57 +82,50 @@ module.exports = {
             });
     },
     fetchProduct (url, done) {
-        const route = apiRoutes.productURL.replace(':url', encodeURIComponent(url));
+        const route = enums.routes.product.replace(':url', encodeURIComponent(url));
         return xhr(route, 'get', { url })
             .then((response) => {
                 console.info('XHR: fetchProduct', url, response);
                 done(response);
             })
-            .catch((e) => {
-                console.warn('XHR: fetchProduct error', e);
-            });
+            .catch((e) => console.warn('XHR: fetchProduct error', e));
     },
-    addWishlistItem ({ user, wishlist, item }, done) {
-        //console.info('addWishlistItem csrfToken', csrfToken);
-        const url = apiRoutes.collection
-            .replace(':resource', 'wishlist')
-            .replace(':collection', 'myWishlist')
+    addWishlistItem (item) {
+        const url = enums.routes.collection
+            .replace(':resource', 'wishlists')
+            .replace(':collection?', wishlist)
             .replace('/:type?', '')
             .replace('/:id?', '');
 
-        return xhr(url, 'post', { user, wishlist, item })
-            .then((response) => {
-                done(response);
-            })
-            .catch((e) => {
-                console.warn('XHR: addWishlistItem error', e);
-            });
+        const addWishlistItem = (resolve, reject) => {
+            xhr(url, 'post', { user, wishlist, item })
+                .then(resolve)
+                .catch((e) => {
+                    console.warn('XHR: addWishlistItem error', e);
+                    reject(e);
+                });
+        };
+        return preflightPOST(addWishlistItem);
     },
     fetchWishlistItems (pageNum) {
-        const url = apiRoutes.collection
-            .replace(':resource', 'wishlist')
-            .replace(':collection', 'myWishlist')
-            .replace(':type?', 'page')
-            .replace(':id?', pageNum);
+        const url = enums.routes.collection
+            .replace(':resource', 'wishlists')
+            .replace(':collection?', wishlist)
+            .replace('/:type?', '')
+            .replace('/:id?', '');
 
-        const fetchWishlist = (resolve, reject) => xhr(url, 'get').then(resolve, reject);
+        return new Promise((resolve, reject) => xhr(url, 'get').then(resolve, reject));
+    },
+    fetchWishlists () {
+        const url = enums.routes.collection
+            .replace(':resource', 'wishlists')
+            .replace('/:collection?', '')
+            .replace('/:type?', '')
+            .replace('/:id?', '');
 
-        if (csrfToken) {
-            return new Promise(fetchWishlist);
-        } else {
-            return new Promise((resolve, reject) => {
-                this.fetchCSRFToken().then(() => fetchWishlist(resolve, reject), reject);
-            });
-        }
+        //const fetchWishlists = (resolve, reject) => xhr(url, 'get').then(resolve, reject);
+        return new Promise((resolve, reject) => xhr(url, 'get').then(resolve, reject));
     }
-
-    /*,
-    fetchUser (id) {
-        xhr(apiRoutes.user + id)
-            .then(( response ) => {
-                console.info('fetchUser', id);
-            }).catch((e) => {
-                console.warn('fetchUser error', e);
-            });
-    }*/
 };
+
+module.exports = API;

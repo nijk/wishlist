@@ -26,5 +26,13 @@ module.exports = _.extend(defaultEvents, keymirror({
 
     FETCH_ITEMS: null,
     FETCH_ITEMS_SUCCESS: null,
-    FETCH_ITEMS_FAILURE: null
+    FETCH_ITEMS_FAILURE: null,
+
+    ADD_WISHLIST: null,
+    ADD_WISHLIST_SUCCESS: null,
+    ADD_WISHLIST_FAILURE: null,
+
+    FETCH_WISHLISTS: null,
+    FETCH_WISHLISTS_SUCCESS: null,
+    FETCH_WISHLISTS_FAILURE: null
 }));

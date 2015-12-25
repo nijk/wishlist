@@ -11,16 +11,20 @@ const Fluxxor = require('fluxxor');
 const events = require('../events');
 
 let store = {
+    fetching: false,
     itemToAdd: undefined,
-    items: {}
+    items: []
 };
 
 // @todo: this might be better if it incremented the last key instead of object length.
 const setItem = (item) => {
-    const itemKey = (_.size(store.items) + 1).toString();
-    store.items[itemKey] = item;
+    store.items.push(item);
     unsetItemToAdd();
-    return itemKey;
+};
+
+// @todo: this might be better if it incremented the last key instead of object length.
+const unsetAllItems = () => {
+    store.items = [];
 };
 
 // @todo: this might be better if it incremented the last key instead of object length.
@@ -33,6 +37,8 @@ const ItemStore = Fluxxor.createStore({
         this.bindActions(
             events.ADD_URL, this.onAddURL,
             events.ADD_ITEM, this.onAddItem,
+            events.ADD_ITEM_SUCCESS, this.onAddItemSuccess,
+            events.ADD_ITEM_FAILURE, this.onAddItemFailure,
             events.FETCH_ITEMS_SUCCESS, this.onFetchItems
         );
     },
@@ -65,7 +71,7 @@ const ItemStore = Fluxxor.createStore({
         const images = _.has(product, 'images');
         const imageUrl = images && _.each(product.images, _.has('url'));
 
-        return url && title && description && images && imageUrl;
+        return url && title/* && description*/ && images && imageUrl;
     },
 
     onAddURL ({ url, product }) {
@@ -88,27 +94,47 @@ const ItemStore = Fluxxor.createStore({
     },
 
     onAddItem (itemToAdd) {
-        if ( this.validateProduct(itemToAdd) ) {
-            const itemKey = setItem(itemToAdd);
+        store.fetching = true;
+
+        // @todo: reset the items from the response from addItem, or trigger a re-fetch
+        // Paging should be okay here, as we only need to store the items for either:
+        //  - the current page
+        //  - the current pages loaded so far (assuming infinity scroll), e.g pages 1-7
+
+        /*if ( this.validateProduct(itemToAdd) ) {
+            //const itemKey = setItem(itemToAdd);
             console.info(events.ADD_ITEM_SUCCESS, this.getItem(itemKey), store.items);
             this.emit( events.ADD_ITEM_SUCCESS, this.getItem(itemKey) );
         } else {
             const payload = { item: itemToAdd, msg: 'Could not add item due to a validation error' };
             console.warn(events.ADD_ITEM_FAILURE, payload);
             this.emit( events.ADD_ITEM_FAILURE, payload );
-        }
+        }*/
+        this.emit( events.CHANGE );
+    },
+
+    onAddItemSuccess (item) {
+        store.fetching = true;
+        // Re-fetch Wishlist Items, with current pages?
+        this.emit( events.ADD_ITEM_SUCCESS );
+    },
+
+    onAddItemFailure (item) {
+        store.fetching = false;
+
+        this.emit( events.ADD_ITEM_FAILURE, item );
         this.emit( events.CHANGE );
     },
 
     onFetchItems (items) {
+        // Clear down stored items first.
+        unsetAllItems();
 
         _.each(items, (item) => {
             if (this.validateProduct(item)) {
-                const itemKey = setItem(item);
-                //console.info(events.FETCH_ITEMS_SUCCESS, this.getItem(itemKey), store.items);
-                this.emit( events.FETCH_ITEMS_SUCCESS, this.getItem(itemKey) );
+                setItem(item);
             } else {
-                console.warn(events.FETCH_ITEMS_FAILURE, this.getItem(itemKey), store.items);
+                console.warn(events.FETCH_ITEMS_FAILURE, item, store.items);
             }
         });
         this.emit( events.CHANGE );
@@ -124,6 +150,10 @@ const ItemStore = Fluxxor.createStore({
 
     getItemToAdd () {
         return store.itemToAdd;
+    },
+
+    isFetching () {
+        return store.fetching;
     }
 });
 

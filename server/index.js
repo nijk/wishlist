@@ -1,12 +1,10 @@
 'use strict';
 
 const app = require('express')();
-const config = require('./config');
-const api = require('./api');
 
 // Configure the application
-config(app);
-api(app);
+require('./config')(app);
+require('./api')(app);
 
 /* Start Server */
 app.listen(app.get('port'), () => {

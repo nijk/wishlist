@@ -22,7 +22,7 @@ const WishlistItem = React.createClass({
         item: React.PropTypes.shape({
             title: React.PropTypes.string.isRequired,
             siteName: React.PropTypes.string,
-            description: React.PropTypes.string.isRequired,
+            description: React.PropTypes.string,
             url: React.PropTypes.string.isRequired,
             images: React.PropTypes.arrayOf(
                 React.PropTypes.shape({

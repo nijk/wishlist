@@ -10,6 +10,7 @@ const Fluxxor = require('fluxxor');
 const React = require('react');
 const CoreStore = require('./stores/CoreStore');
 const ItemsStore = require('./stores/ItemsStore');
+const WishlistsStore = require('./stores/WishlistsStore');
 
 let core = new Fluxxor.Flux();
 
@@ -26,7 +27,8 @@ core.addActions(require('./actions'));
 
 core.addStores({
     'Core': new CoreStore(),
-    'Items': new ItemsStore()
+    'Items': new ItemsStore(),
+    'Wishlists': new WishlistsStore()
 });
 
 module.exports = core;

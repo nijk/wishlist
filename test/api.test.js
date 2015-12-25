@@ -6,105 +6,193 @@
 
 'use strict';
 
-const _ = require('lodash');
+// const _ = require('lodash');
 const sandbox = require('sinon').sandbox.create();
 const chai = require('chai');
-const chaiHttp = require('chai-http');
 const expect = chai.expect;
 const mockery = require('mockery');
-const app = require('express')();
+const common = require('./common');
 
-chai.use(chaiHttp);
-
-const endAsyncTest = (next) => ((err, res) => {
-    if (err) throw new Error(err);
-    next(err, res);
-});
-
-describe('API', () => {
-    let agent, stubs;
-
-    before(() => {
-        mockery.enable({ warnOnReplace: true, warnOnUnregistered: false, useCleanCache: true });
-    });
-    after(mockery.disable);
-
-    beforeEach(() => {
-        stubs = {
-            ogScraperError: sandbox.stub().returns(null),
-            ogScraperResult: sandbox.stub().returns({
+let agent;
+let stubs = {
+        csrf: sandbox.stub().returns((req, res, next) => {
+            req.csrfToken = () => '123';
+            next();
+        }),
+        DB: {
+            createCollection: sandbox.stub().returns(common.promise(null, { msg: 'DB.createCollection not stubbed' })),
+            retrieveCollections: sandbox.stub().returns(common.promise(null, { msg: 'DB.retrieveCollections not stubbed' })),
+            retrieveDocuments: sandbox.stub().returns(common.promise(null, { msg: 'DB.retrieveDocuments not stubbed' }))
+        },
+        ogScraper: {
+            error: sandbox.stub().returns(null),
+            result: sandbox.stub().returns({
                 success: true,
                 opengraph: true,
                 data: { ogSiteName: 'FooBar' }
             })
-        };
-
-        // Setup mocks
-        const ogScraperMock = ({}, callback) => callback(stubs.ogScraperError(), stubs.ogScraperResult());
-        mockery.registerMock('open-graph-scraper', ogScraperMock);
-        mockery.registerMock('./db', {});
-
-        // Setup app with API & Config, adding mocks
-        require('../server/config')(app);
-        require('../server/api')(app);
-
-        // Setup app fake static response to get session cookie
-        app.get('/', (req, res) => res.json({}) );
-
-        // Setup Chai Agent to use App configuration
-        if (!agent) {
-            agent = chai.request.agent(app);
         }
-    });
+    };
 
-    it('should set a session cookie', (done) => {
+/**
+ * Mocks to use
+ * @type Oject literal
+ *   Key: Module (require) name/path
+ *   Value: Export value to mock
+ */
+const mocks = {
+    'csurf': stubs.csrf,
+    'open-graph-scraper': ({}, callback) => {
+        return callback(stubs.ogScraper.error(), stubs.ogScraper.result());
+    },
+    './db': stubs.DB
+};
+
+/**
+ * Callback used once Chai Agent has been setup.
+ * @param chaiAgent
+ */
+const agentCallback = (chaiAgent) => agent = chaiAgent;
+
+/**
+ * SetUp wrapper
+ */
+const setUp = () => common.setUp({ mocks, agentCallback });
+
+describe('API', function () {
+    before(function () {
+        setUp();
+    });
+    after(common.tearDown);
+
+    it('should set a session cookie', function (done) {
         agent.get('/')
             .end((err, res) => {
                 expect(res).to.have.cookie('connect.sid');
-                endAsyncTest(done)(err, res);
+                common.done(done)(err, res);
             });
     });
 
-    describe('CSRF', () => {
-        it('should return a token as a string', (done) => {
+    describe('CSRF', function () {
+        it('should return a token as a string', function (done) {
             agent.get('/api/token')
                 .end((err, res) => {
                     expect(res).to.have.status(200);
                     expect(res.body.token).to.be.a('string');
-                    endAsyncTest(done)(err, res);
+                    common.done(done)(err, res);
                 });
         });
     });
 
-    describe('Fetch Product from URL', () => {
-        it('should accept a URI encoded param', (done) => {
+    describe('ProductURL', function () {
+        it('should accept a URI encoded param', function (done) {
             const url = encodeURIComponent('http://foo.bar');
             agent.get(`/api/product/${url}`)
                 .end((err, res) => {
                     expect(res).to.have.status(200);
-                    endAsyncTest(done)(err, res);
+                    common.done(done)(err, res);
                 });
         });
 
-        it('should return an object containing Open Graph data', (done) => {
+        it('should return an object containing Open Graph data', function (done) {
             const url = encodeURIComponent('http://foo.bar');
             agent.get(`/api/product/${url}`)
                 .end((err, res) => {
                     expect(res).to.have.status(200);
                     expect(res.body.data).to.have.deep.property('ogSiteName', 'FooBar');
-                    endAsyncTest(done)(err, res);
+                    common.done(done)(err, res);
                 });
         });
 
-        it('should return 500 on failure', (done) => {
-            stubs.ogScraperError.returns({ status: 500 });
-            stubs.ogScraperResult.returns({ err: 'Forced 500 error' });
+        it('should return 500 on failure', function (done) {
+            stubs.ogScraper.error.returns({ status: 500 });
+            stubs.ogScraper.result.returns({ err: 'Forced 500 error' });
 
             const url = encodeURIComponent('http://foo.bar');
             agent.get(`/api/product/${url}`)
                 .end((err, res) => {
                     expect(res).to.have.status(500);
-                    endAsyncTest(done)(err, res);
+                    common.done(done)(err, res);
+                });
+        });
+    });
+
+    describe('Invalid resource', function () {
+        it('should return a 400 for invalid resource', function (done) {
+            agent.get('/api/invalid')
+                .end((err, res) => {
+                    expect(res).to.have.status(400);
+                    expect(res.body).to.have.property('msg', 'API Error: Invalid resource');
+                    common.done(done)(err, res);
+                });
+        });
+    });
+
+    describe('Wishlists resource', function () {
+        // @todo: get this working
+        it.skip('should return all collections', (done) => {
+            const resolve = { data: [ { foo: 'bar' }, { baz: 'qux' } ] };
+            stubs.DB.retrieveDocuments.returns(common.promise(resolve));
+            setUp();
+
+            agent.get('/api/wishlists')
+                .end((err, res) => {
+                    expect(res).to.have.status(200);
+                    expect(res.body.data).to.be.an('Array');
+                    common.done(done)(err, res);
+                });
+        });
+
+        it('should return a valid collection', function (done) {
+            const resolve = { data: { foo: 'bar' } };
+            stubs.DB.retrieveDocuments.returns(common.promise(resolve));
+            setUp();
+
+            agent.get('/api/wishlists/valid')
+                .end((err, res) => {
+                    expect(res).to.have.status(200);
+                    expect(res.body.data).to.have.property('foo', 'bar');
+                    common.done(done)(err, res);
+                });
+        });
+
+        it('should refuse an invalid collection', function (done) {
+            // @todo: switch this to user/wishlist based validation
+            const reject = { baz: 'qux' };
+            stubs.DB.retrieveDocuments.returns(common.promise(null, reject));
+            setUp();
+
+            agent.get('/api/wishlists/invalid')
+                .end((err, res) => {
+                    expect(res).to.have.status(400);
+                    expect(res.body).to.have.property('msg', 'API Error: Invalid collection');
+                    common.done(done)(err, res);
+                });
+        });
+        it('should create a collection', function (done) {
+            const resolve = 'foo';
+            stubs.DB.createCollection.returns(common.promise(resolve));
+            setUp();
+
+            agent.post('/api/wishlists')
+                .send({ item: { name: 'foo' } })
+                .end((err, res) => {
+                    expect(res).to.have.status(201);
+                    expect(res).to.have.header('location', '/api/wishlists/foo//');
+                    common.done(done)(err, res);
+                });
+        });
+
+        it('should return collections', (done) => {
+            const resolve = { data: [{ foo: 'bar' }, { baz: 'qux' }] };
+            stubs.DB.retrieveCollections.returns(common.promise(resolve));
+            setUp();
+
+            agent.get('/api/wishlists')
+                .end((err, res) => {
+                    expect(res).to.have.status(200);
+                    expect(res.body.data).to.deep.equal([{ foo: 'bar' }, { baz: 'qux' }]);
+                    common.done(done)(err, res);
                 });
         });
     });

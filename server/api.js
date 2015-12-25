@@ -12,27 +12,56 @@ const csrf = require('csurf')();
 const ogScraper = require('open-graph-scraper');
 // const ineed = require('ineed');
 // const auth = require('./auth');
-const routes = require('../routes.api.js');
+const enums = require('../enums.api.js');
 
 // @todo: log errors server-side
 function errorHandler (err, errCode, msg, res) {
     const errName = 'API Error';
     const errResponse = { msg: `${errName}: ${msg}`, status: errCode, err };
-    console.warn(errName, errResponse);
+    // console.warn(errName, errResponse);
     res.status(errCode);
     res.json(errResponse);
 }
 
+/**
+ * Validate requests
+ * @param req
+ * @param res
+ * @param next
+ */
+function validator (req, res, next) {
+    // @todo: SECURITY validate access
+    // @todo: SECURITY handle/cleanse request data
+    const { resource } = req.params;
+
+    if (resource && !_.includes(enums.resources, resource)) {
+        return errorHandler({}, 400, 'Invalid resource', res);
+    }
+
+    next();
+}
+
+/**
+ * Get User
+ * @param req
+ * @param res
+ * @param id
+ */
 function getUserObject (req, res, id) {
     (id) ? res.json({ username: id }) : errorHandler(req, 500, 'User not found', res);
 }
 
 module.exports = (app) => {
-    /* API: GET CSRF Token */
-    app.get(routes.token, csrf, (req, res) => res.json({ token: req.csrfToken() }) );
+    /**
+     *  API: GET CSRF Token
+     */
+    app.get(enums.routes.auth.token, csrf, validator, (req, res) => res.json({ token: req.csrfToken() }) );
 
-    /* API: GET Product URL (Fetch URL data: OG Tags/Scraped Data) */
-    app.get(routes.productURL, (req, res) => { // @todo: validate CSRF?
+    /**
+     * API: GET Product URL
+     * Fetch URL data: OG Tags/Scraped Data
+     */
+    app.get(enums.routes.product, validator, (req, res) => {
         const url = decodeURIComponent(req.params.url);
         const resultDefaults = { opengraph: false, scraped: false };
 
@@ -45,42 +74,64 @@ module.exports = (app) => {
         // @todo: Scrape for data if OG returns no useful results
     });
 
-    /* API: POST Wishlist Collection (Save Wishlist item) */
-    app.post(routes.collection, (req, res) => {
-        // @todo: validate user/wishlist
-        // @todo: validate CSRF?
-        // @todo: handle/cleanse request data
 
-        const { user, wishlist, item } = req.body;
+    /**
+     * API: POST Resource/Collection
+     * Create Collection/Document
+     */
+    app.post(enums.routes.collection, csrf, validator, (req, res) => {
+        const user = 'nijk'; // @todo: User Authentication
 
-        DB.createDocument({ user, collection: wishlist, doc: item })
-            .then((result) => {
-                res.json(result.ops)
-            })
-            .catch((err) => {
-                errorHandler(err, 500, 'Could not create document', res);
-            });
+        const { resource, collection } = req.params;
+        const { item } = req.body;
+
+        if (collection && item) {
+            DB.createDocument({ user, resource, collection, doc: item })
+                .then((result) => res.json(result.ops))
+                .catch((err) => errorHandler(err, 500, 'Could not create document', res));
+
+        } else if (item) {
+            DB.createCollection({ user, resource, collection: item.name })
+                .then((name) => {
+                    // @todo: Isomorphic route transformer
+                    const location = enums.routes.collection
+                        .replace(':resource', resource)
+                        .replace(':collection?', name)
+                        .replace(':type?', '')
+                        .replace(':id?', '');
+
+                    res.status(201);
+                    res.set('Location', location);
+                    res.send();
+                })
+                .catch((err) => errorHandler(err, 500, 'Could not create collection', res));
+        } else {
+            errorHandler({}, 500, 'Nothing to do: "item" parameter missing.', res);
+        }
     });
 
-    /* API: GET Wishlist Collection By Page (Fetch Wishlist items by page) */
-    app.get(routes.collection, csrf, (req, res) => {
+    /**
+     * API: GET Resource/Collection
+     * With paging
+     */
+    app.get(enums.routes.collection, validator, (req, res) => {
+        const user = 'nijk'; // @todo: User Authentication
+
+        const { resource, collection, type, id } = req.params;
+
         let pageNum = 1;
+        if ('page' === type && id) { pageNum = id }
 
-        // console.info('collection', req.params);
+        if (collection) {
+            DB.retrieveDocuments({ user, resource, collection, pageNum })
+                .then(res.json)
+                .catch((err) => errorHandler(err, 500, 'Could not retrieve documents', res));
+        } else {
+            DB.retrieveCollections({ user, resource, pageNum })
+                .then(res.json)
+                .catch((err) => errorHandler(err, 500, 'Could not retrieve collections', res));
 
-        if ('page' === req.params.type && req.params.id) {
-            pageNum = req.params.id;
         }
-
-        // @todo: validate CSRF?
-        // @todo: handle/cleanse request data
-        DB.retrieveDocuments(req.params.collection, pageNum)
-            .then((result) => {
-                res.json(result);
-            })
-            .catch((err) => {
-                errorHandler(err, 500, 'Could not retrieve documents', res);
-            });
     });
 
     /*app.get('/api/user/:id?', auth.authenticate('local'), function(req, res) {
