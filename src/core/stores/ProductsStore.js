@@ -214,6 +214,9 @@ const ProductsStore = Fluxxor.createStore({
     },
 
     isEditing (id) {
+        if (!id) {
+            return !!store.productsInEditMode.length;
+        }
         return _.indexOf(store.productsInEditMode, id) > -1;
     }
 });

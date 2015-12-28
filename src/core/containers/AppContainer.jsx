@@ -10,6 +10,7 @@
 const _ = require('lodash');
 const core = require('core/Core');
 const React = require('react');
+const classnames = require('classnames');
 const paths = require('../../../common/enums.paths');
 
 // Components
@@ -20,6 +21,7 @@ const List = require('../components/List');
 
 /* Styles */
 require('style/wishlist');
+require('style/overlay');
 /* ------ */
 
 const AppContainer = React.createClass({
@@ -90,23 +92,28 @@ const AppContainer = React.createClass({
     },
 
     _renderAddProduct () {
+        const actions = [{
+            key: 'add-product-save',
+            active: true,
+            type: 'save',
+            text: 'Save product',
+            onClick: this.onAddProduct
+        }];
+        const product = _.merge(this.state.productToAdd, { actions: actions });
+
         return (
             <div classNames="add-product">
                 <Product
                     key="add-product"
-                    mode="display"
+                    mode="edit"
                     onAddProduct={ this.onAddProduct }
-                    product={ this.state.productToAdd }
+                    product={ product }
                 />
-                <Button key="add-product-save" text="Save" onClick={ this.onAddProduct } />
             </div>
         );
     },
 
     _renderWishlist () {
-
-        console.info('_renderWishlist', this.state.products);
-
         const products = _.map(this.state.products, (product, index) => {
             let mode = 'display';
             let actions = {
@@ -155,12 +162,18 @@ const AppContainer = React.createClass({
     },
 
     render () {
+        const overlayClasses = {
+            overlay: true,
+            'overlay--active': this.state.isEditingProduct()
+        };
+
         return (
             <div className="wishlist-products">
                 { (_.size(this.state.wishlists) > 0) ? this._renderWishlists() : null }
                 { this._renderAddURL() }
                 { (this.state.productToAdd) ? this._renderAddProduct() : null }
                 { (_.size(this.state.products) > 0) ? this._renderWishlist() : null }
+                <div className={ classnames(overlayClasses) }></div>
             </div>
         );
     }
