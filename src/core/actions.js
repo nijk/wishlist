@@ -9,7 +9,7 @@
 // const core = require('./Core');
 const API = require('./api');
 const events = require('./events');
-const eventsEnums = require('../../enums.events');
+const eventsEnums = require('../../common/enums.events');
 
 const errorCallback = (e, msg = 'Message missing') => {
     // @todo: throw user message

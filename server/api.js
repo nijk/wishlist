@@ -12,7 +12,8 @@ const csrf = require('csurf')();
 const ogScraper = require('open-graph-scraper');
 // const ineed = require('ineed');
 // const auth = require('./auth');
-const enums = require('../enums.api.js');
+const transform = require('../common/transforms');
+const enums = require('../common/enums.api.js');
 
 // @todo: log errors server-side
 function errorHandler (err, errCode, msg, res) {
@@ -92,12 +93,7 @@ module.exports = (app) => {
         } else if (item) {
             DB.createCollection({ user, resource, collection: item.name })
                 .then((name) => {
-                    // @todo: Isomorphic route transformer
-                    const location = enums.routes.collection
-                        .replace(':resource', resource)
-                        .replace(':collection?', name)
-                        .replace(':id?', '');
-
+                    const location = transform.route(enums.routes.collection, { resource: resource, collection: name });
                     res.status(201);
                     res.set('Location', location);
                     res.send();

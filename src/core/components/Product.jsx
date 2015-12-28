@@ -72,33 +72,34 @@ const Product = React.createClass({
             return null;
         }
 
-
         return (
             <div className="product__actions">
                 { _.map(this.props.product.actions, (action, index) => {
-                    const classes = {
+                    if (!action.active) {
+                        return null;
+                    }
+
+                    action.classes = {
                         product__action: true,
+                        'button-primary': false,
                         button__link: false
                     };
-                    let prependedText = '';
 
-                    if (action.active) {
-                        if ('delete' === action.type) {
-                            prependedText = ' or ';
-                            classes.button__link = true;
-                        }
-                        return (
-                            <span>
-                                <Text tag="span" text={ prependedText }/>
-                                <Button
-                                    key={`product-action-${index + 1}`}
-                                    className={ classes }
-                                    text={ action.text }
-                                    onClick={ this.clickHandler(action.onClick || action.type) }
-                                />
-                            </span>
-                        );
+                    if ('edit' === action.type || 'save' === action.type) {
+                        action.classes['button-primary'] = true;
+                    } else if ('delete' === action.type) {
+                        action.prepend = <Text key={ 'prepend-action-delete' } tag="span" text=" or "/>;
+                        action.classes.button__link = true;
                     }
+                    return (
+                        <Button
+                            key={ `button-action-${ index + 1 }` }
+                            className={ action.classes }
+                            prependElement={ action.prepend }
+                            text={ action.text }
+                            onClick={ this.clickHandler(action.onClick || action.type) }
+                        />
+                    );
                 }) }
             </div>
         );

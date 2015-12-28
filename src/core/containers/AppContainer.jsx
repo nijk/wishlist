@@ -10,7 +10,7 @@
 const _ = require('lodash');
 const core = require('core/Core');
 const React = require('react');
-const paths = require('../../../enums.paths');
+const paths = require('../../../common/enums.paths');
 
 // Components
 const AddURL = require('../components/AddURL');
@@ -104,6 +104,9 @@ const AppContainer = React.createClass({
     },
 
     _renderWishlist () {
+
+        console.info('_renderWishlist', this.state.products);
+
         const products = _.map(this.state.products, (product, index) => {
             let mode = 'display';
             let actions = {

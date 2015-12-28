@@ -7,12 +7,20 @@
   flex-direction: row;
   margin-bottom: 2rem;
   box-shadow: 0 0 6px #ccc;
+}
 
-  .product__media {
-    padding: 2.5rem;
-    min-width: 20rem;
-    max-width: 20rem;
-  }
+.product__media {
+padding: 2.5rem;
+min-width: 20rem;
+max-width: 20rem;
+}
+
+.product__actions {
+    padding-top: 2rem;
+
+    .product__action {
+        margin-bottom: 0;
+    }
 }
 
 .product__details {

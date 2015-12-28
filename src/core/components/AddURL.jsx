@@ -14,7 +14,7 @@ const Button = require('./Button');
 require('style/add-url');
 /* ------ */
 
-const AddURL = React.createClass({
+module.exports = React.createClass({
     displayName: 'AddURL',
 
     propTypes: {
@@ -40,7 +40,7 @@ const AddURL = React.createClass({
                     type="text"
                     /*label="Add an Product"*/
                     placeholder="Paste your URL here"
-                    labelClassNames={ labelClasses }
+                    labelClassName={ labelClasses }
                     value={ this.props.url }
                     defaultValue={ this.props.inputDefaultValue }
                     onChange={ this.props.onHandleInput }
@@ -48,12 +48,10 @@ const AddURL = React.createClass({
                 <Button
                     key="addProductButton"
                     text="Add"
-                    classNames={ btnClasses }
+                    className={ btnClasses }
                     onClick={ this.props.onAdd }
                 />
             </div>
         );
     }
 });
-
-module.exports = AddURL;

@@ -138,10 +138,7 @@ const ProductsStore = Fluxxor.createStore({
         } else {
             // Update values during editing
             store.products = _.map(store.products, (item) => {
-
-                if (item.id === product.id) {
-                    return product;
-                }
+                return (item && product && item.id === product.id) ? product : item;
             });
         }
 

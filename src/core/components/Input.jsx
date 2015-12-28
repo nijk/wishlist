@@ -32,8 +32,14 @@ module.exports = React.createClass({
             React.PropTypes.string,
             React.PropTypes.number
         ]),
-        classNames: React.PropTypes.objectOf(React.PropTypes.bool),
-        labelClassNames: React.PropTypes.objectOf(React.PropTypes.bool),
+        className: React.PropTypes.oneOfType([
+            React.PropTypes.objectOf(React.PropTypes.bool),
+            React.PropTypes.string
+        ]),
+        labelClassName: React.PropTypes.oneOfType([
+            React.PropTypes.objectOf(React.PropTypes.bool),
+            React.PropTypes.string
+        ]),
         onChange: React.PropTypes.func
     },
 
@@ -91,13 +97,13 @@ module.exports = React.createClass({
      */
     render () {
         const input = {
-            classes: classnames(this.props.classNames),
+            classes: classnames(this.props.className),
             id: this.props.name,
             tag: 'textarea' === this.props.type ? 'textarea' : 'input'
         };
 
         return (
-            <label className={ classnames( this.props.labelClassNames ) } htmlFor={ this.props.name }>
+            <label className={ classnames( this.props.labelClassName ) } htmlFor={ this.props.name }>
                 { this.props.label }
                 <input.tag
                     { ...this.props }
