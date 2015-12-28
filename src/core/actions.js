@@ -28,6 +28,22 @@ const eventFactory = function (event, status, payload) {
     this.dispatch(eventName, payload || {});
 };
 
+const cleanseOutgoingParams = (params) => {
+    if (params.id) {
+        params._id = params.id;
+    }
+
+    return _.omit(params, ['id', 'actions', 'onClick']);
+};
+
+const cleanseIncomingParams = (params) => {
+    if (params._id) {
+        params.id = params._id;
+    }
+
+    return _.omit(params, '_id');
+};
+
 const actions = {
     appStart () {
         API.fetchCSRFToken()
@@ -65,10 +81,53 @@ const actions = {
 
         API.fetchProducts(1)
             .then(({ body }) => {
-                console.info('API.fetchProducts(1).then() products.body', body);
-                eventFactory.bind(this, event, eventsEnums.SUCCESS, body)();
+                const payload = _.map(body, cleanseIncomingParams);
+                console.info('API.fetchProducts(1).then() products.body', body, payload);
+                eventFactory.bind(this, event, eventsEnums.SUCCESS, payload)();
             }, errorCallback);
     },
+
+    editProduct (product) {
+        console.info('editProduct', product);
+
+        this.dispatch(events.EDIT_PRODUCT, product);
+    },
+
+    updateProduct (product) {
+        const event = events.UPDATE_PRODUCT;
+        this.dispatch(event, product);
+
+        const data = cleanseOutgoingParams(product);
+        API.updateProduct(data)
+            .then(({ body }) => {
+                const payload = cleanseIncomingParams(body.item);
+                eventFactory.bind(this, event, eventsEnums.SUCCESS, payload)();
+                // Fetch all products
+                actions.getProducts.bind(this)();
+            },
+            (e) => {
+                eventFactory.bind(this, event, eventsEnums.FAILURE, {})();
+                errorCallback(e, 'updateProduct failure');
+            });
+    },
+
+    deleteProduct (product) {
+        const event = events.DELETE_PRODUCT;
+        this.dispatch(event, product);
+
+        const data = cleanseOutgoingParams(product);
+        API.deleteProduct(data)
+            .then(({ body }) => {
+                    eventFactory.bind(this, event, eventsEnums.SUCCESS, product)();
+                    // Fetch all products
+                    actions.getProducts.bind(this)();
+                },
+                (e) => {
+                    eventFactory.bind(this, event, eventsEnums.FAILURE, {})();
+                    errorCallback(e, 'deleteProduct failure');
+                });
+    },
+
     getWishlists () {
         const event = events.FETCH_WISHLISTS;
         this.dispatch(event);

@@ -28,7 +28,7 @@ const xhr = (url, type = 'get', data = {}) => new Promise((resolve, reject) => {
     let request;
     switch (type) {
         case 'delete':
-            // request = superagent.delete(url, data);
+            request = superagent.del(url, data);
             break;
         case 'post':
             request = superagent.post(url, data);
@@ -46,7 +46,7 @@ const xhr = (url, type = 'get', data = {}) => new Promise((resolve, reject) => {
     }
 
     request.set('Accept', 'application/json; charset=utf-8');
-    request.end(function ( err, response ) {
+    request.end(( err, response ) => {
         if ( !err ) {
             response.body = JSON.parse( response.text );
             resolve( response );
@@ -60,7 +60,7 @@ const xhr = (url, type = 'get', data = {}) => new Promise((resolve, reject) => {
     });
 });
 
-const preflightPOST = function (done) {
+const preflightPOST = (done) => {
     if (!csrfToken) {
         return new Promise((resolve, reject) => {
             API.fetchCSRFToken().then(() => done(resolve, reject), reject);
@@ -94,11 +94,10 @@ const API = {
         const url = enums.routes.collection
             .replace(':resource', 'wishlists')
             .replace(':collection?', wishlist)
-            .replace('/:type?', '')
             .replace('/:id?', '');
 
         const addProduct = (resolve, reject) => {
-            xhr(url, 'post', { user, wishlist, item: product })
+            xhr(url, 'post', { user, item: product })
                 .then(resolve)
                 .catch((e) => {
                     console.warn('XHR: addProduct error', e);
@@ -107,24 +106,58 @@ const API = {
         };
         return preflightPOST(addProduct);
     },
+    updateProduct (product) {
+
+        console.info('updateProduct data', product);
+
+        const url = enums.routes.collection
+            .replace(':resource', 'wishlists')
+            .replace(':collection?', wishlist)
+            .replace('/:id?', '');
+
+        const updateProduct = (resolve, reject) => {
+            xhr(url, 'put', { user, item: product })
+                .then(resolve)
+                .catch((e) => {
+                    console.warn('XHR: updateProduct error', e);
+                    reject(e);
+                });
+        };
+        return preflightPOST(updateProduct);
+    },
+    deleteProduct (product) {
+        const url = enums.routes.collection
+            .replace(':resource', 'wishlists')
+            .replace(':collection?', wishlist)
+            .replace(':id?', product._id);
+
+        return new Promise((resolve, reject) => xhr(url, 'delete', { user, item: product })
+                .then(resolve)
+                .catch((e) => {
+                    console.warn('XHR: deleteProduct error', e);
+                    reject(e);
+                })
+        );
+    },
     fetchProducts (pageNum) {
         const url = enums.routes.collection
             .replace(':resource', 'wishlists')
             .replace(':collection?', wishlist)
-            .replace('/:type?', '')
             .replace('/:id?', '');
 
-        return new Promise((resolve, reject) => xhr(url, 'get').then(resolve, reject));
+        return new Promise((resolve, reject) => xhr(url, 'get')
+            .then(resolve, reject)
+        );
     },
     fetchWishlists () {
         const url = enums.routes.collection
             .replace(':resource', 'wishlists')
             .replace('/:collection?', '')
-            .replace('/:type?', '')
             .replace('/:id?', '');
 
-        //const fetchWishlists = (resolve, reject) => xhr(url, 'get').then(resolve, reject);
-        return new Promise((resolve, reject) => xhr(url, 'get').then(resolve, reject));
+        return new Promise((resolve, reject) => xhr(url, 'get')
+            .then(resolve, reject)
+        );
     }
 };
 

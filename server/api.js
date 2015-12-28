@@ -74,7 +74,6 @@ module.exports = (app) => {
         // @todo: Scrape for data if OG returns no useful results
     });
 
-
     /**
      * API: POST Resource/Collection
      * Create Collection/Document
@@ -97,7 +96,6 @@ module.exports = (app) => {
                     const location = enums.routes.collection
                         .replace(':resource', resource)
                         .replace(':collection?', name)
-                        .replace(':type?', '')
                         .replace(':id?', '');
 
                     res.status(201);
@@ -111,16 +109,55 @@ module.exports = (app) => {
     });
 
     /**
+     * API: PUT Document
+     * Update Document
+     */
+    app.put(enums.routes.collection, csrf, validator, (req, res) => {
+        const user = 'nijk'; // @todo: User Authentication
+
+        const { resource, collection } = req.params;
+        const { item } = req.body;
+
+        if (collection && item) {
+            DB.updateDocument({ user, resource, collection, doc: item })
+                .then((result) => res.json({ result, item }))
+                .catch((err) => errorHandler(err, 500, 'Could not update document', res));
+
+        } else {
+            errorHandler({}, 409, 'Nothing to do: "collection" and/or "item" parameters missing.', res);
+        }
+    });
+
+    /**
+     * API: DELETE Document
+     * Remove Document
+     */
+    app.delete(enums.routes.collection, /*csrf, */validator, (req, res) => {
+        const user = 'nijk'; // @todo: User Authentication
+
+        const { resource, collection, id } = req.params;
+
+        if (collection && id) {
+            DB.removeDocument({ user, resource, collection, id })
+                .then((result) => res.json({ result }))
+                .catch((err) => errorHandler(err, 500, 'Could not remove document', res));
+
+        } else {
+            errorHandler({}, 409, 'Nothing to do: "collection" and/or "id" parameters missing.', res);
+        }
+    });
+
+    /**
      * API: GET Resource/Collection
      * With paging
      */
     app.get(enums.routes.collection, validator, (req, res) => {
         const user = 'nijk'; // @todo: User Authentication
 
-        const { resource, collection, type, id } = req.params;
+        const { resource, collection/*, type, id*/ } = req.params;
 
         let pageNum = 1;
-        if ('page' === type && id) { pageNum = id }
+        // if ('page' === type && id) { pageNum = id }
 
         if (collection) {
             DB.retrieveDocuments({ user, resource, collection, pageNum })

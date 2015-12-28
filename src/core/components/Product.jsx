@@ -7,9 +7,11 @@
 'use strict';
 
 const _ = require('lodash');
+const core = require('core/Core');
 const React = require('react');
 const Button = require('./Button');
 const Text = require('./Text');
+const Input = require('./Input');
 
 /* Styles */
 require('style/add-url');
@@ -21,6 +23,7 @@ const Product = React.createClass({
     propTypes: {
         mode: React.PropTypes.oneOf(['display', 'edit']),
         product: React.PropTypes.shape({
+            id: React.PropTypes.string,
             title: React.PropTypes.string.isRequired,
             siteName: React.PropTypes.string,
             description: React.PropTypes.string,
@@ -45,47 +48,42 @@ const Product = React.createClass({
     },
 
     clickHandler (handler) {
-        if (_.isFunction(handler)) {
-            return handler;
+        if (!_.isFunction(handler)) {
+            switch (handler) {
+                case 'edit':
+                    handler = core.actions.editProduct;
+                    break;
+                case 'save':
+                    handler = core.actions.updateProduct;
+                    break;
+                case 'delete':
+                    handler = core.actions.deleteProduct;
+                    break;
+                default:
+                    handler = () => console.warn('Product handlerFn not defined');
+            }
         }
 
-        let handlerFn = () => {
-            console.warn('Product handlerFn not defined');
-        };
-        switch (handler) {
-            case 'edit':
-                handlerFn = core.actions.editProduct;
-                break;
-            case 'save':
-                handlerFn = core.actions.updateProduct;
-                break;
-            case 'delete':
-                handlerFn = core.actions.deleteProduct;
-                break;
-        }
-
-        return handlerFn;
+        return handler.bind(this, this.props.product);
     },
 
     _renderActions () {
-        if (0 === this.props.product.actions.length) {
+        if (!this.props.product.actions || 0 === this.props.product.actions.length) {
             return null;
         }
 
         return (
             <div className="product__actions">
-                {
-                    _.map(this.props.product.actions, (action, index) => {
-                        if (action.active) {
-                            return <Button
-                                key={`product-action-${index + 1}`}
-                                className="product__action"
-                                text={ action.text }
-                                onClick={ this.clickHandler(action.onClick) }
-                            />
-                        }
-                    })
-                }
+                { _.map(this.props.product.actions, (action, index) => {
+                    if (action.active) {
+                        return <Button
+                            key={`product-action-${index + 1}`}
+                            className="product__action"
+                            text={ action.text }
+                            onClick={ this.clickHandler(action.onClick || action.type) }
+                        />
+                    }
+                }) }
             </div>
         );
     },
@@ -93,9 +91,11 @@ const Product = React.createClass({
     _renderProduct () {
         return (
             <div key={ this.props.key } className="product">
-                <a className="media" href={ this.props.product.url } target="_blank" onClick={ this.props.product.onClick }>
-                    <img src={ this.props.product.images[0].url } title={ this.props.product.title } />
-                </a>
+                <div className="product__media">
+                    <a className="media" href={ this.props.product.url } target="_blank" onClick={ this.props.product.onClick }>
+                        <img src={ this.props.product.images[0].url } title={ this.props.product.title } />
+                    </a>
+                </div>
                 <div className="product__details">
                     <Text tag='h3' text={ this.props.product.title } />
                     <Text tag='p' text={ this.props.product.description } />
@@ -117,7 +117,7 @@ const Product = React.createClass({
         if ( !this.props.product.images ) { return null; }
 
         const images = _.map(this.props.product.images, (product, index) => {
-            if (product && _.isString(product.url)) {
+            if (_.isString(product.url)) {
                 return ( <img key={ `temp-product-${index}` } src={ product.url } alt={ product.alt || '' } /> );
             }
         }, []);
@@ -127,8 +127,23 @@ const Product = React.createClass({
 
     _renderProductEdit () {
         return (
-            <div classNames="edit-product">
-                { this._renderImages() }
+            <div key={ this.props.key } className="product product--editing">
+                <div className="product__media">{ this._renderImages() }</div>
+                <div className="product__details">
+                    <Input
+                        type="text"
+                        name="product-title"
+                        value={ this.props.product.title }
+                        onChange={ this.props.onHandleInput }
+                    />
+                    <Input
+                        type="textarea"
+                        name="product-title"
+                        value={ this.props.product.description }
+                        onChange={ this.props.onHandleInput }
+                    />
+                </div>
+                { this._renderActions() }
             </div>
         );
     },

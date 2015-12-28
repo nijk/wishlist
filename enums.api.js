@@ -10,6 +10,6 @@ module.exports = {
             login: '/api/login'
         },
         product: '/api/product/:url',
-        collection: '/api/:resource/:collection?/:type?/:id?'
+        collection: '/api/:resource/:collection?/:id?'
     }
 };

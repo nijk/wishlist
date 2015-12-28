@@ -6,6 +6,7 @@
 
 'use strict';
 
+const _ = require('lodash');
 const React = require('react');
 const ReactDOM = require('react-dom');
 const classnames = require('classnames');
@@ -65,8 +66,13 @@ module.exports = React.createClass({
     },
 
     handleChange (event) {
-        event.preventDefault();
-        this.props.onChange(event, this.getValue());
+        if (_.isFunction(this.props.onChange)) {
+            event.preventDefault();
+
+            console.info('handleChange', this.props.onChange);
+
+            this.props.onChange(event, this.getValue(), this.props.name);
+        }
     },
 
     /**
@@ -84,15 +90,21 @@ module.exports = React.createClass({
      * @description Render the input.
      */
     render () {
+        const input = {
+            classes: classnames(this.props.classNames),
+            id: this.props.name,
+            tag: 'textarea' === this.props.type ? 'textarea' : 'input'
+        };
+
         return (
-            <label className={ classnames( this.props.labelClassNames ) } for={ this.props.name }>
+            <label className={ classnames( this.props.labelClassNames ) } htmlFor={ this.props.name }>
                 { this.props.label }
-                <input
+                <input.tag
                     { ...this.props }
                     ref="input"
-                    id={ this.props.name }
+                    id={ input.id }
                     name={ this.props.name }
-                    className={ classnames(this.props.classNames) }
+                    className={ input.classes }
                     onChange={ this.handleChange }
                 />
             </label>

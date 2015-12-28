@@ -39,6 +39,8 @@ const AppContainer = React.createClass({
             wishlists: wishlistsStore.getWishlists(),
             productToAdd: productsStore.getProductToAdd(),
             products: productsStore.getProducts(),
+            isEditingProduct: productsStore.isEditing,
+            isUpdatingProduct: productsStore.isUpdating(),
             addURL: ''
         };
     },
@@ -52,6 +54,15 @@ const AppContainer = React.createClass({
 
     onHandleInputForAddURL (e, url) {
         this.setState({ addURL: url });
+    },
+
+    onHandleInputForProduct (product, e, value, field) {
+        console.info('onHandleInputForProduct', arguments);
+
+        const fieldName = field.replace('product-', '');
+        product[fieldName] = value;
+
+        core.actions.editProduct(product);
     },
 
     onAddProduct (e) {
@@ -93,25 +104,34 @@ const AppContainer = React.createClass({
     },
 
     _renderWishlist () {
-        const actions = [{
-            active: true,
-            type: 'edit',
-            text: 'Edit product'
-        },{
-            active: true,
-            type: 'delete',
-            text: 'Remove'
-        }];
-
         const products = _.map(this.state.products, (product, index) => {
+            let mode = 'display';
+            let actions = {
+                edit: { active: true, type: 'edit', text: 'Edit product' },
+                save: { active: false, type: 'save', text: 'Save product' },
+                delete: { active: true, type: 'delete', text: 'Remove' }
+            };
 
-            // @todo: check ProductStore for a product that might be being edited, if so:
-            // Change: (actions) edit > save, (mode) display > editing
+            if (this.state.isEditingProduct(product.id)) {
+                mode = 'edit';
+                // Disable edit action & enable save action
+                actions.edit.active = false;
+                actions.save.active = true;
+            }
+
+            product = _.merge(
+                _.clone(product),
+                {
+                    onClick: this.onClickProduct,
+                    actions: [ actions.edit, actions.save, actions.delete ]
+                }
+            );
 
             return <Product
                 key={ `product-${index + 1}` }
-                mode="display"
-                product={ _.merge(_.clone(product), { onClick: this.onClickProduct, actions }) }
+                mode={ mode }
+                product={ product }
+                onHandleInput={ this.onHandleInputForProduct.bind(this, product) }
             />;
         });
 
@@ -135,7 +155,6 @@ const AppContainer = React.createClass({
         return (
             <div className="wishlist-products">
                 { (_.size(this.state.wishlists) > 0) ? this._renderWishlists() : null }
-
                 { this._renderAddURL() }
                 { (this.state.productToAdd) ? this._renderAddProduct() : null }
                 { (_.size(this.state.products) > 0) ? this._renderWishlist() : null }

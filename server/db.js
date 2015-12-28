@@ -6,7 +6,8 @@
 
 'use strict';
 
-const MongoClient = require('mongodb').MongoClient;
+const _ = require('lodash');
+const MongoDB = require('mongodb');
 const MongoURL = 'mongodb://localhost:27017/';
 const Promise = require('native-promise-only');
 const assert = require('assert');
@@ -27,7 +28,7 @@ const connectDB = ({ user, resource }) => {
     const dbName = getDBName({ user, resource });
 
     return new Promise((resolve, reject) => {
-        MongoClient.connect(MongoURL + dbName, (err, db) => {
+        MongoDB.MongoClient.connect(MongoURL + dbName, (err, db) => {
             if (err) return reject(err);
             resolve(db);
         })
@@ -69,6 +70,44 @@ module.exports = {
             .catch((err) => {
                 db.close();
                 return reject({ msg: 'DB:createDocument error!', err: err });
+            });
+    }),
+    updateDocument: ({ user, resource, collection, doc }) => new Promise((resolve, reject) => {
+        connectDB({ user, resource })
+            .then((db) => {
+                db.collection(collection)
+                    .update({ _id: MongoDB.ObjectId(doc._id) }, _.omit(doc, '_id'))
+                    .then((result) => {
+                        db.close();
+                        resolve(result);
+                    })
+                    .catch((err) => {
+                        db.close();
+                        return reject({ msg: 'DB:updateDocument error!', err: err });
+                    });
+            })
+            .catch((err) => {
+                db.close();
+                return reject({ msg: 'DB:updateDocument error!', err: err });
+            });
+    }),
+    removeDocument: ({ user, resource, collection, id }) => new Promise((resolve, reject) => {
+        connectDB({ user, resource })
+            .then((db) => {
+                db.collection(collection)
+                    .remove({ _id: MongoDB.ObjectId(id) }, 1)
+                    .then((result) => {
+                        db.close();
+                        resolve(result);
+                    })
+                    .catch((err) => {
+                        db.close();
+                        return reject({ msg: 'DB:removeDocument error!', err: err });
+                    });
+            })
+            .catch((err) => {
+                db.close();
+                return reject({ msg: 'DB:removeDocument error!', err: err });
             });
     }),
     retrieveCollections: ({ user, resource, pageNum }) => new Promise((resolve, reject) => {

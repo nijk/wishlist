@@ -17,32 +17,11 @@ const Text = React.createClass({
     },
 
     render () {
-        let tag, text = this.props.text;
-        switch (this.props.tag) {
-            case 'h1':
-                tag = <h1>{ text }</h1>;
-                break;
-            case 'h2':
-                tag = <h2>{ text }</h2>;
-                break;
-            case 'h3':
-                tag = <h3>{ text }</h3>;
-                break;
-            case 'h4':
-                tag = <h4>{ text }</h4>;
-                break;
-            case 'h5':
-                tag = <h5>{ text }</h5>;
-                break;
-            case 'h6':
-                tag = <h6>{ text }</h6>;
-                break;
-            default:
-                tag = <p>{ text }</p>;
-                break;
-        }
-
-        return ( tag );
+        const props = {
+            tag: this.props.tag,
+            text: this.props.text
+        };
+        return <props.tag>{ props.text }</props.tag>;
     }
 
 });

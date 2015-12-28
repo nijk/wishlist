@@ -11,7 +11,9 @@ const Fluxxor = require('fluxxor');
 const events = require('../events');
 
 let store = {
+    productsInEditMode: [],
     fetching: false,
+    updating: false,
     productToAdd: undefined,
     products: []
 };
@@ -32,6 +34,19 @@ const unsetProductToAdd = () => {
     store.productToAdd = undefined;
 };
 
+const removeProductFromEditingMode = (product) => {
+    store.updating = false;
+    _.remove(store.productsInEditMode, (i) => {
+        console.info('remove item from productsInEditMode', i, product);
+
+        if (i === product.id) {
+            return product.id;
+        }
+    });
+
+    console.info('store.productsInEditMode', store.productsInEditMode);
+};
+
 const ProductsStore = Fluxxor.createStore({
     initialize () {
         this.bindActions(
@@ -39,29 +54,36 @@ const ProductsStore = Fluxxor.createStore({
             events.ADD_PRODUCT, this.onAddProduct,
             events.ADD_PRODUCT_SUCCESS, this.onAddProductSuccess,
             events.ADD_PRODUCT_FAILURE, this.onAddProductFailure,
+            events.EDIT_PRODUCT, this.onEditProduct,
+            events.UPDATE_PRODUCT, this.onUpdateProduct,
+            events.UPDATE_PRODUCT_SUCCESS, this.onUpdateProductSuccess,
+            events.UPDATE_PRODUCT_FAILURE, this.onUpdateProductFailure,
+            events.DELETE_PRODUCT, this.onDeleteProduct,
+            events.DELETE_PRODUCT_SUCCESS, this.onDeleteProductSuccess,
+            events.DELETE_PRODUCT_FAILURE, this.onDeleteProductFailure,
             events.FETCH_PRODUCTS_SUCCESS, this.onFetchProducts
         );
     },
 
     // @todo: use lodash _.template ??
     transformProduct (url, product) {
-        const productProduct = { url: url };
+        const item = { url: url };
 
         // Transform OpenGraph data
         if ( product.opengraph ) {
-            product.url = product.data.ogUrl || product.data.url;
-            product.siteName = product.data.ogSiteName || product.data.siteName;
-            product.title = product.data.ogTitle || product.data.title;
-            product.description = product.data.ogDescription || product.data.description;
-            product.images = [ product.data.ogImage || product.data.image ];
+            item.url = product.data.ogUrl || product.data.url;
+            item.siteName = product.data.ogSiteName || product.data.siteName;
+            item.title = product.data.ogTitle || product.data.title;
+            item.description = product.data.ogDescription || product.data.description;
+            item.images = [ product.data.ogImage || product.data.image ];
         }
 
         //Transform scraped data
         if ( product.scraped ) {
-            product.images = product.data.images;
+            item.images = product.data.images;
         }
 
-        return product;
+        return item;
     },
 
     validateProduct ( product ) {
@@ -126,6 +148,57 @@ const ProductsStore = Fluxxor.createStore({
         this.emit( events.CHANGE );
     },
 
+    onEditProduct (product) {
+        if (_.indexOf(store.productsInEditMode, product.id) === -1) {
+            // Begin editing mode
+            store.productsInEditMode.push(product.id);
+        } else {
+            // Update values during editing
+            store.products = _.map(store.products, (item) => {
+
+                if (item.id === product.id) {
+                    return product;
+                }
+            });
+        }
+
+        this.emit( events.CHANGE );
+    },
+
+    onUpdateProduct () {
+        store.updating = true;
+        this.emit( events.CHANGE );
+    },
+
+    onUpdateProductSuccess (product) {
+        removeProductFromEditingMode(product);
+        this.emit( events.UPDATE_PRODUCT_SUCCESS, product );
+        this.emit( events.CHANGE );
+    },
+    
+    onUpdateProductFailure (product) {
+        removeProductFromEditingMode(product);
+        this.emit( events.UPDATE_PRODUCT_FAILURE, product );
+        this.emit( events.CHANGE );
+    },
+
+    onDeleteProduct () {
+        store.updating = true;
+        this.emit( events.CHANGE );
+    },
+
+    onDeleteProductSuccess (product) {
+        store.updating = false;
+        this.emit( events.DELETE_PRODUCT_SUCCESS, product );
+        this.emit( events.CHANGE );
+    },
+    
+    onDeleteProductFailure (product) {
+        store.updating = false;
+        this.emit( events.DELETE_PRODUCT_FAILURE, product );
+        this.emit( events.CHANGE );
+    },
+
     onFetchProducts (products) {
         // Clear down stored products first.
         unsetAllProducts();
@@ -144,8 +217,8 @@ const ProductsStore = Fluxxor.createStore({
         return store.products;
     },
 
-    getProduct (key) {
-        return store.products[key] || 1;
+    getProduct (id) {
+        return _.find(store.products, { id: id });
     },
 
     getProductToAdd () {
@@ -154,6 +227,14 @@ const ProductsStore = Fluxxor.createStore({
 
     isFetching () {
         return store.fetching;
+    },
+
+    isUpdating () {
+        return store.updating;
+    },
+
+    isEditing (id) {
+        return _.indexOf(store.productsInEditMode, id) > -1;
     }
 });
 

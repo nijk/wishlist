@@ -8,15 +8,21 @@
   margin-bottom: 2rem;
   box-shadow: 0 0 6px #ccc;
 
-  .media {
+  .product__media {
     padding: 2.5rem;
     min-width: 20rem;
+    max-width: 20rem;
   }
 }
 
 .product__details {
+  width: 100%;
   padding: 2.5rem 5rem;
   background: #f0f0f0;
+
+  input, textarea {
+    width: 100%;
+  }
 
   p {
     margin: 0;
