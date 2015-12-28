@@ -36,15 +36,7 @@ const unsetProductToAdd = () => {
 
 const removeProductFromEditingMode = (product) => {
     store.updating = false;
-    _.remove(store.productsInEditMode, (i) => {
-        console.info('remove item from productsInEditMode', i, product);
-
-        if (i === product.id) {
-            return product.id;
-        }
-    });
-
-    console.info('store.productsInEditMode', store.productsInEditMode);
+    _.remove(store.productsInEditMode, (i) => i === product.id && product.id);
 };
 
 const ProductsStore = Fluxxor.createStore({

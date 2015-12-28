@@ -72,16 +72,32 @@ const Product = React.createClass({
             return null;
         }
 
+
         return (
             <div className="product__actions">
                 { _.map(this.props.product.actions, (action, index) => {
+                    const classes = {
+                        product__action: true,
+                        button__link: false
+                    };
+                    let prependedText = '';
+
                     if (action.active) {
-                        return <Button
-                            key={`product-action-${index + 1}`}
-                            className="product__action"
-                            text={ action.text }
-                            onClick={ this.clickHandler(action.onClick || action.type) }
-                        />
+                        if ('delete' === action.type) {
+                            prependedText = ' or ';
+                            classes.button__link = true;
+                        }
+                        return (
+                            <span>
+                                <Text tag="span" text={ prependedText }/>
+                                <Button
+                                    key={`product-action-${index + 1}`}
+                                    className={ classes }
+                                    text={ action.text }
+                                    onClick={ this.clickHandler(action.onClick || action.type) }
+                                />
+                            </span>
+                        );
                     }
                 }) }
             </div>
@@ -106,8 +122,8 @@ const Product = React.createClass({
                         </a>
                     : null
                     }
+                    { this._renderActions() }
                 </div>
-                { this._renderActions() }
             </div>
         );
     },
@@ -142,8 +158,8 @@ const Product = React.createClass({
                         value={ this.props.product.description }
                         onChange={ this.props.onHandleInput }
                     />
+                    { this._renderActions() }
                 </div>
-                { this._renderActions() }
             </div>
         );
     },

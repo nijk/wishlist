@@ -15,7 +15,7 @@ const AddProduct = React.createClass({
     propTypes: {
         disabled: React.PropTypes.bool,
         text: React.PropTypes.string,
-        classNames: React.PropTypes.objectOf(React.PropTypes.bool),
+        className: React.PropTypes.objectOf(React.PropTypes.bool),
         onClick: React.PropTypes.func.isRequired
     },
 
@@ -23,7 +23,7 @@ const AddProduct = React.createClass({
         return (
             <button
                 ref="button"
-                className={ classnames( this.props.classNames ) }
+                className={ classnames( this.props.className ) }
                 onClick={ this.props.onClick }
             >
                 { this.props.text }
