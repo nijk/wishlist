@@ -89,7 +89,7 @@ const ProductsStore = Fluxxor.createStore({
     validateProduct ( product ) {
         const url = _.has(product, 'url');
         const title = _.has(product, 'title');
-        const description = _.has(product, 'description');
+        //const description = _.has(product, 'description');
         const images = _.has(product, 'images');
         const imageUrl = images && _.each(product.images, _.has('url'));
 
@@ -115,7 +115,7 @@ const ProductsStore = Fluxxor.createStore({
         this.emit( events.CHANGE );
     },
 
-    onAddProduct (productToAdd) {
+    onAddProduct () {
         store.fetching = true;
 
         // @todo: reset the products from the response from addProduct, or trigger a re-fetch
@@ -123,15 +123,6 @@ const ProductsStore = Fluxxor.createStore({
         //  - the current page
         //  - the current pages loaded so far (assuming infinity scroll), e.g pages 1-7
 
-        /*if ( this.validateProduct(productToAdd) ) {
-            //const productKey = setProduct(productToAdd);
-            console.info(events.ADD_PRODUCT_SUCCESS, this.getProduct(productKey), store.products);
-            this.emit( events.ADD_PRODUCT_SUCCESS, this.getProduct(productKey) );
-        } else {
-            const payload = { product: productToAdd, msg: 'Could not add product due to a validation error' };
-            console.warn(events.ADD_PRODUCT_FAILURE, payload);
-            this.emit( events.ADD_PRODUCT_FAILURE, payload );
-        }*/
         this.emit( events.CHANGE );
     },
 

@@ -6,7 +6,6 @@
 
 'use strict';
 
-const _ = require('lodash');
 const Fluxxor = require('fluxxor');
 const events = require('../events');
 

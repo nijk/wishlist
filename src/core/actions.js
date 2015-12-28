@@ -117,7 +117,7 @@ const actions = {
 
         const data = cleanseOutgoingParams(product);
         API.deleteProduct(data)
-            .then(({ body }) => {
+            .then(() => {
                     eventFactory.bind(this, event, eventsEnums.SUCCESS, product)();
                     // Fetch all products
                     actions.getProducts.bind(this)();
