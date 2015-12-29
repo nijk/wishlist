@@ -7,6 +7,7 @@
 'use strict';
 
 // const core = require('./Core');
+const _ = require('lodash');
 const API = require('./api');
 const events = require('./events');
 const eventsEnums = require('../../common/enums.events');
@@ -61,16 +62,18 @@ const actions = {
         API.fetchProduct(url, callback);
     },
     addProduct (product) {
-        const event = events.ADD_PRODUCT;
-        this.dispatch(event, product);
+        const event = events.MODIFY_PRODUCT;
+        const payload = { type: 'update', product };
+        this.dispatch(event, payload);
 
         API.addProduct(product)
             .then(({ body }) => {
-                eventFactory.bind(this, event, eventsEnums.SUCCESS, body[0])();
+                payload.product = body[0];
+                eventFactory.bind(this)(event, eventsEnums.SUCCESS, payload);
                 actions.getProducts.bind(this)();
             },
             (e) => {
-                eventFactory.bind(this, event, eventsEnums.FAILURE, {})();
+                eventFactory.bind(this)(event, eventsEnums.FAILURE, payload);
                 errorCallback(e, 'addProduct failure');
             });
     },
@@ -81,7 +84,7 @@ const actions = {
         API.fetchProducts(1)
             .then(({ body }) => {
                 const payload = _.map(body, cleanseIncomingParams);
-                eventFactory.bind(this, event, eventsEnums.SUCCESS, payload)();
+                eventFactory.bind(this)(event, eventsEnums.SUCCESS, payload);
             }, errorCallback);
     },
 
@@ -90,36 +93,38 @@ const actions = {
     },
 
     updateProduct (product) {
-        const event = events.UPDATE_PRODUCT;
-        this.dispatch(event, product);
+        const event = events.MODIFY_PRODUCT;
+        const payload = { type: 'update', product };
+        this.dispatch(event, payload);
 
         const data = cleanseOutgoingParams(product);
         API.updateProduct(data)
             .then(({ body }) => {
-                const payload = cleanseIncomingParams(body.item);
-                eventFactory.bind(this, event, eventsEnums.SUCCESS, payload)();
+                payload.product = cleanseIncomingParams(body.item);
+                eventFactory.bind(this)(event, eventsEnums.SUCCESS, payload);
                 // Fetch all products
                 actions.getProducts.bind(this)();
             },
             (e) => {
-                eventFactory.bind(this, event, eventsEnums.FAILURE, {})();
+                eventFactory.bind(this)(event, eventsEnums.FAILURE, payload);
                 errorCallback(e, 'updateProduct failure');
             });
     },
 
     deleteProduct (product) {
-        const event = events.DELETE_PRODUCT;
-        this.dispatch(event, product);
+        const event = events.MODIFY_PRODUCT;
+        const payload = { type: 'delete', product };
+        this.dispatch(event, payload);
 
         const data = cleanseOutgoingParams(product);
         API.deleteProduct(data)
             .then(() => {
-                    eventFactory.bind(this, event, eventsEnums.SUCCESS, product)();
+                    eventFactory.bind(this)(event, eventsEnums.SUCCESS, payload);
                     // Fetch all products
                     actions.getProducts.bind(this)();
                 },
                 (e) => {
-                    eventFactory.bind(this, event, eventsEnums.FAILURE, {})();
+                    eventFactory.bind(this)(event, eventsEnums.FAILURE, payload);
                     errorCallback(e, 'deleteProduct failure');
                 });
     },

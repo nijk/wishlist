@@ -43,16 +43,13 @@ const ProductsStore = Fluxxor.createStore({
     initialize () {
         this.bindActions(
             events.ADD_URL, this.onAddURL,
-            events.ADD_PRODUCT, this.onAddProduct,
-            events.ADD_PRODUCT_SUCCESS, this.onAddProductSuccess,
-            events.ADD_PRODUCT_FAILURE, this.onAddProductFailure,
+
+            events.MODIFY_PRODUCT, this.onModifyProduct,
+            events.MODIFY_PRODUCT_SUCCESS, this.onModifyProductSuccess,
+            events.MODIFY_PRODUCT_FAILURE, this.onModifyProductFailure,
+
             events.EDIT_PRODUCT, this.onEditProduct,
-            events.UPDATE_PRODUCT, this.onUpdateProduct,
-            events.UPDATE_PRODUCT_SUCCESS, this.onUpdateProductSuccess,
-            events.UPDATE_PRODUCT_FAILURE, this.onUpdateProductFailure,
-            events.DELETE_PRODUCT, this.onDeleteProduct,
-            events.DELETE_PRODUCT_SUCCESS, this.onDeleteProductSuccess,
-            events.DELETE_PRODUCT_FAILURE, this.onDeleteProductFailure,
+
             events.FETCH_PRODUCTS_SUCCESS, this.onFetchProducts
         );
     },
@@ -78,14 +75,8 @@ const ProductsStore = Fluxxor.createStore({
         return item;
     },
 
-    validateProduct ( product ) {
-        const url = _.has(product, 'url');
-        const title = _.has(product, 'title');
-        //const description = _.has(product, 'description');
-        const images = _.has(product, 'images');
-        const imageUrl = images && _.each(product.images, _.has('url'));
-
-        return url && title/* && description*/ && images && imageUrl;
+    validateProduct ({ url, title, images }) {
+        return url && title && images && _.each(images, _.has('url'));
     },
 
     onAddURL ({ url, product }) {
@@ -107,30 +98,6 @@ const ProductsStore = Fluxxor.createStore({
         this.emit( events.CHANGE );
     },
 
-    onAddProduct () {
-        store.fetching = true;
-
-        // @todo: reset the products from the response from addProduct, or trigger a re-fetch
-        // Paging should be okay here, as we only need to store the products for either:
-        //  - the current page
-        //  - the current pages loaded so far (assuming infinity scroll), e.g pages 1-7
-
-        this.emit( events.CHANGE );
-    },
-
-    onAddProductSuccess () {
-        store.fetching = true;
-        // Re-fetch Wishlist Products, with current pages?
-        this.emit( events.ADD_PRODUCT_SUCCESS );
-    },
-
-    onAddProductFailure (product) {
-        store.fetching = false;
-
-        this.emit( events.ADD_PRODUCT_FAILURE, product );
-        this.emit( events.CHANGE );
-    },
-
     onEditProduct (product) {
         if (_.indexOf(store.productsInEditMode, product.id) === -1) {
             // Begin editing mode
@@ -145,37 +112,27 @@ const ProductsStore = Fluxxor.createStore({
         this.emit( events.CHANGE );
     },
 
-    onUpdateProduct () {
+    onModifyProduct ({ type, product }) {
         store.updating = true;
         this.emit( events.CHANGE );
     },
 
-    onUpdateProductSuccess (product) {
-        removeProductFromEditingMode(product);
-        this.emit( events.UPDATE_PRODUCT_SUCCESS, product );
+    onModifyProductSuccess ({ type, product }) {
+        store.updating = false;
+        if ('update' === type || 'add' === type) {
+            removeProductFromEditingMode(product);
+        }
+        this.emit( events.MODIFY_PRODUCT_SUCCESS, { type, product } );
         this.emit( events.CHANGE );
     },
     
-    onUpdateProductFailure (product) {
-        removeProductFromEditingMode(product);
-        this.emit( events.UPDATE_PRODUCT_FAILURE, product );
-        this.emit( events.CHANGE );
-    },
-
-    onDeleteProduct () {
-        store.updating = true;
-        this.emit( events.CHANGE );
-    },
-
-    onDeleteProductSuccess (product) {
+    onModifyProductFailure ({ type, product }) {
         store.updating = false;
-        this.emit( events.DELETE_PRODUCT_SUCCESS, product );
-        this.emit( events.CHANGE );
-    },
-    
-    onDeleteProductFailure (product) {
-        store.updating = false;
-        this.emit( events.DELETE_PRODUCT_FAILURE, product );
+        if ('update' === type || 'add' === type) {
+            removeProductFromEditingMode(product);
+        }
+        console.warn( events.MODIFY_PRODUCT_FAILURE, { type, product } );
+        this.emit( events.MODIFY_PRODUCT_FAILURE, { type, product } );
         this.emit( events.CHANGE );
     },
 

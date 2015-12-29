@@ -20,19 +20,11 @@ module.exports = _.extend(defaultEvents, keymirror({
     ADD_URL_SUCCESS: null,
     ADD_URL_FAILURE: null,
 
-    ADD_PRODUCT: null,
-    ADD_PRODUCT_SUCCESS: null,
-    ADD_PRODUCT_FAILURE: null,
+    MODIFY_PRODUCT: null,
+    MODIFY_PRODUCT_SUCCESS: null,
+    MODIFY_PRODUCT_FAILURE: null,
 
     EDIT_PRODUCT: null,
-
-    UPDATE_PRODUCT: null,
-    UPDATE_PRODUCT_SUCCESS: null,
-    UPDATE_PRODUCT_FAILURE: null,
-
-    DELETE_PRODUCT: null,
-    DELETE_PRODUCT_SUCCESS: null,
-    DELETE_PRODUCT_FAILURE: null,
 
     FETCH_PRODUCTS: null,
     FETCH_PRODUCTS_SUCCESS: null,
