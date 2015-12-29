@@ -74,9 +74,6 @@ module.exports = React.createClass({
     handleChange (event) {
         if (_.isFunction(this.props.onChange)) {
             event.preventDefault();
-
-            console.info('handleChange', this.props.onChange);
-
             this.props.onChange(event, this.getValue(), this.props.name);
         }
     },

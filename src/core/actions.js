@@ -48,7 +48,6 @@ const actions = {
     appStart () {
         API.fetchCSRFToken()
             .then((token) => {
-                //console.info('API.fetchCSRFToken().then()', token);
                 this.dispatch(events.SET_CSRF_TOKEN, token);
                 //this.dispatch(events.APP_START, {});
             }, errorCallback);
@@ -82,14 +81,11 @@ const actions = {
         API.fetchProducts(1)
             .then(({ body }) => {
                 const payload = _.map(body, cleanseIncomingParams);
-                console.info('API.fetchProducts(1).then() products.body', body, payload);
                 eventFactory.bind(this, event, eventsEnums.SUCCESS, payload)();
             }, errorCallback);
     },
 
     editProduct (product) {
-        console.info('editProduct', product);
-
         this.dispatch(events.EDIT_PRODUCT, product);
     },
 
@@ -134,7 +130,6 @@ const actions = {
 
         API.fetchWishlists(1)
             .then(({ body }) => {
-                console.info('API.fetchWishlists(1).then() wishlists.body', body);
                 eventFactory.bind(this, event, eventsEnums.SUCCESS, body)();
             }, errorCallback);
     }
