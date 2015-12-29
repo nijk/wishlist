@@ -19,7 +19,7 @@ module.exports = {
     /*devtool: 'eval',*/
     entry: {
         app: path.join(srcPath, 'index.js'),
-        common: ['fluxxor', 'react', 'react-dom', 'lodash', 'keymirror']
+        common: ['fluxxor', 'react', 'react-dom', 'lodash', 'keymirror', 'classnames']
     },
     resolve: {
         root: srcPath,
