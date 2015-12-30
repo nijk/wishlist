@@ -38,8 +38,7 @@ const AppContainer = React.createClass({
     render () {
         return (
             <div className="app">
-                <Wishlists />
-                <Wishlist />
+                AppContainer
             </div>
         );
     }

@@ -5,7 +5,6 @@
  */
 
 'use strict';
-
 const logger = require('morgan');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
@@ -16,6 +15,7 @@ const helmet = require('helmet');
 const passport = require('passport');
 const serveStatic = require('serve-static');
 const expressPromise = require('express-promise');
+const routes = require('../common/enums.routes.js');
 
 const serveStaticOpts = {
     'index': ['index.html']
@@ -47,6 +47,13 @@ module.exports = (app) => {
 
     /* Static Assets */
     app.use(serveStatic('dist', serveStaticOpts));
+
+    for(var route in routes) {
+        // Support client side routing, by serving index.html on any route the app supports.
+        app.get(routes[route], (req, res) => {
+            res.sendFile('dist/index.html', { root: '.'});
+        });
+    }
 
     /* Error Handling: middleware should be loaded after the loading the routes */
     if ('development' == app.get('env')) {

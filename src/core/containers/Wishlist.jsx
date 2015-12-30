@@ -11,7 +11,6 @@ const _ = require('lodash');
 const core = require('core/Core');
 const React = require('react');
 const classnames = require('classnames');
-const paths = require('../../../common/enums.paths');
 
 // Components
 const AddURL = require('../components/AddURL');

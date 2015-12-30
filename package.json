@@ -77,6 +77,7 @@
     "express-promise": "^0.4.0",
     "fluxxor": "^1.7.3",
     "helmet": "^0.14.0",
+    "history": "^1.17.0",
     "http": "0.0.0",
     "ineed": "^1.0.4",
     "json-loader": "^0.5.3",
@@ -88,6 +89,7 @@
     "passport-local": "^1.0.0",
     "react": "^0.14.2",
     "react-dom": "^0.14.2",
+    "react-router": "^1.0.3",
     "serve-static": "^1.10.0",
     "superagent": "^1.4.0"
   },

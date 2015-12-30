@@ -11,7 +11,7 @@ const _ = require('lodash');
 const core = require('core/Core');
 const React = require('react');
 const transform = require('../../../common/transforms');
-const paths = require('../../../common/enums.paths');
+const routes = require('../../../common/enums.routes');
 
 // Components
 const List = require('../components/List');
@@ -44,7 +44,7 @@ const Wishlists = React.createClass({
             return {
                 name: item.name,
                 link: {
-                    url: transform.route(paths.wishlists.wishlist, { title: item.name.toLowerCase() })
+                    url: transform.route(routes.wishlist, { title: item.name.toLowerCase() })
                 }
             }
         });
