@@ -1,0 +1,40 @@
+@import 'variables';
+
+.app-header {
+    min-height: 5rem;
+    margin-bottom: 5rem;
+    padding: 0.5rem 2.0rem;
+
+    background-color: $primary;
+
+    h1, h2, h3, h4, h5, h6 {
+        display: inline-block;
+        margin: 0;
+        color: $white;
+    }
+
+    nav, ul {
+        display: inline-flex;
+        margin: 0;
+    }
+
+    li {
+        list-style: none;
+        margin-right: 2rem;
+    }
+
+    .app-name {
+        margin-right: 2rem;
+        font-size: 3.5rem;
+    }
+
+    .menu-item {
+        padding: 1rem;
+        text-decoration: none;
+    }
+
+    .menu-item--active {
+        padding-bottom: 0.8rem;
+        border-bottom: 0.2rem solid $white;
+    }
+}

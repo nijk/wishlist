@@ -72,7 +72,7 @@ const List = React.createClass({
         const list = {
             tag: this.props.type || 'ul',
             items: this.props.items,
-            classes: classnames(this.props.classes)
+            classes: this.props.classes ? classnames(this.props.classes) : null
         };
 
         return ( <list.tag className={ list.classes }>{ _.map(list.items, this._renderItem) }</list.tag> );

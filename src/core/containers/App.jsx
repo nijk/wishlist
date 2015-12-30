@@ -37,9 +37,10 @@ module.exports = {
     mount () {
         render((
             <Router history={ createBrowserHistory() } createElement={ createElement }>
-                <Route path="/" component={ AppContainer }/>
-                <Route path="/wishlists" component={ Wishlists }/>
-                <Route path="/wishlists/:wishlist" component={ Wishlist }/>
+                <Route path="/" component={ AppContainer }>
+                    <Route path="/wishlists" component={ Wishlists }/>
+                    <Route path="/wishlists/:wishlist" component={ Wishlist }/>
+                </Route>
             </Router>
         ), document.getElementById('app-container'));
     }

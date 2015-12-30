@@ -10,10 +10,13 @@
 const core = require('core/Core');
 const React = require('react');
 
+// Containers
+const Header = require('./Header');
+
 /* Styles */
 /* ------ */
 
-const AppContainer = React.createClass({
+module.exports = React.createClass({
     displayName: 'AppContainer',
 
     mixins: [
@@ -27,17 +30,14 @@ const AppContainer = React.createClass({
         };
     },
 
-    componentDidMount () {
-
-    },
-
     render () {
         return (
             <div className="app">
-                AppContainer
+                <Header />
+                <div className="container">
+                    { this.props.children }
+                </div>
             </div>
         );
     }
 });
-
-module.exports = AppContainer;

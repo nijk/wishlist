@@ -21,7 +21,7 @@ const Text = React.createClass({
             tag: this.props.tag,
             text: this.props.text
         };
-        return <props.tag key={ this.props.key } >{ props.text }</props.tag>;
+        return <props.tag props={ this.props.key } className={ this.props.className }>{ props.text }</props.tag>;
     }
 
 });
