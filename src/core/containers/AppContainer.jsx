@@ -10,10 +10,6 @@
 const core = require('core/Core');
 const React = require('react');
 
-// Containers
-const Wishlist = require('./Wishlist');
-const Wishlists = require('./Wishlists');
-
 /* Styles */
 /* ------ */
 

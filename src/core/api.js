@@ -137,8 +137,8 @@ const API = {
                 })
         );
     },
-    fetchProducts (pageNum) {
-        const path = transform.route(enums.routes.collection, { resource: 'wishlists', collection: wishlist });
+    fetchCollection ({ resource, collection, page }) {
+        const path = transform.route(enums.routes.collection, { resource, collection });
         return new Promise((resolve, reject) => xhr(path, 'get')
             .then(resolve, reject)
         );

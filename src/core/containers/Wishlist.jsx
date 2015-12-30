@@ -75,7 +75,7 @@ const Wishlist = React.createClass({
     },
 
     componentDidMount () {
-        core.actions.getProducts();
+        core.actions.getProducts( this.props.params.wishlist );
     },
 
     _renderAddURL () {

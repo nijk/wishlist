@@ -77,11 +77,11 @@ const actions = {
                 errorCallback(e, 'addProduct failure');
             });
     },
-    getProducts () {
+    getProducts (wishlist) {
         const event = events.FETCH_PRODUCTS;
         this.dispatch(event);
 
-        API.fetchProducts(1)
+        API.fetchCollection({resource: 'wishlists', collection: wishlist, page: 1})
             .then(({ body }) => {
                 const payload = _.map(body, cleanseIncomingParams);
                 eventFactory.bind(this)(event, eventsEnums.SUCCESS, payload);
@@ -133,9 +133,9 @@ const actions = {
         const event = events.FETCH_WISHLISTS;
         this.dispatch(event);
 
-        API.fetchWishlists(1)
+        API.fetchCollection({resource: 'wishlists'})
             .then(({ body }) => {
-                eventFactory.bind(this, event, eventsEnums.SUCCESS, body)();
+                eventFactory.bind(this)(event, eventsEnums.SUCCESS, body);
             }, errorCallback);
     }
 };
