@@ -51,13 +51,13 @@ const Product = React.createClass({
         if (!_.isFunction(handler)) {
             switch (handler) {
                 case 'edit':
-                    handler = core.actions.editProduct.bind(this, this.props.product);
+                    handler = core.actions.editProduct.bind(this, this.props.product, this.props.params.wishlist);
                     break;
                 case 'save':
-                    handler = core.actions.updateProduct.bind(this, this.props.product);
+                    handler = core.actions.updateProduct.bind(this, this.props.product, this.props.params.wishlist);
                     break;
                 case 'delete':
-                    handler = core.actions.deleteProduct.bind(this, this.props.product);
+                    handler = core.actions.deleteProduct.bind(this, this.props.product, this.props.params.wishlist);
                     break;
                 default:
                     handler = () => console.warn('Product handlerFn not defined');

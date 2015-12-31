@@ -101,6 +101,7 @@ const Wishlist = React.createClass({
             <div classNames="add-product">
                 <Product
                     key="add-product"
+                    params={ this.props.params }
                     mode="edit"
                     onAddProduct={ this.onAddProduct }
                     product={ product }
@@ -135,6 +136,7 @@ const Wishlist = React.createClass({
 
             return <Product
                 key={ `product-${index + 1}` }
+                params={ this.props.params }
                 mode={ mode }
                 product={ product }
                 onHandleInput={ this.onHandleInputForProduct.bind(this, product) }

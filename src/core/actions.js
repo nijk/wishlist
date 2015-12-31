@@ -92,7 +92,7 @@ const actions = {
         this.dispatch(events.EDIT_PRODUCT, product);
     },
 
-    updateProduct (product) {
+    updateProduct (product, wishlist) {
         const event = events.MODIFY_PRODUCT;
         const payload = { type: 'update', product };
         this.dispatch(event, payload);
@@ -103,7 +103,7 @@ const actions = {
                 payload.product = cleanseIncomingParams(body.item);
                 eventFactory.bind(this)(event, eventsEnums.SUCCESS, payload);
                 // Fetch all products
-                actions.getProducts.bind(this)();
+                actions.getProducts.bind(this)(wishlist);
             },
             (e) => {
                 eventFactory.bind(this)(event, eventsEnums.FAILURE, payload);
@@ -111,7 +111,7 @@ const actions = {
             });
     },
 
-    deleteProduct (product) {
+    deleteProduct (product, wishlist) {
         const event = events.MODIFY_PRODUCT;
         const payload = { type: 'delete', product };
         this.dispatch(event, payload);
@@ -121,7 +121,7 @@ const actions = {
             .then(() => {
                     eventFactory.bind(this)(event, eventsEnums.SUCCESS, payload);
                     // Fetch all products
-                    actions.getProducts.bind(this)();
+                    actions.getProducts.bind(this)(wishlist);
                 },
                 (e) => {
                     eventFactory.bind(this)(event, eventsEnums.FAILURE, payload);
