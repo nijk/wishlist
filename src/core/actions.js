@@ -10,7 +10,8 @@
 const _ = require('lodash');
 const API = require('./api');
 const events = require('./events');
-const eventsEnums = require('../../common/enums.events');
+const eventTypes = require('../../common/enums.events');
+const { queryLimit } = require('../../common/enums.api');
 
 const errorCallback = (e, msg = 'Message missing') => {
     // @todo: throw user message
@@ -20,7 +21,7 @@ const errorCallback = (e, msg = 'Message missing') => {
 
 const eventFactory = function (event, status, payload) {
     const eventName = `${event}_${status}`;
-    if (status && (!_.has(eventsEnums, status) || !_.has(events, eventName))) {
+    if (status && (!_.has(eventTypes, status) || !_.has(events, eventName))) {
         return console.warn('Core actions: Events Factory error: Invalid event or status.', 'Event:', event, 'Status', status);
     }
 
@@ -69,21 +70,23 @@ const actions = {
         API.addProduct(product, wishlist)
             .then(({ body }) => {
                 payload.product = body[0];
-                eventFactory.bind(this)(event, eventsEnums.SUCCESS, payload);
+                eventFactory.bind(this)(event, eventTypes.SUCCESS, payload);
             },
             (e) => {
-                eventFactory.bind(this)(event, eventsEnums.FAILURE, payload);
+                eventFactory.bind(this)(event, eventTypes.FAILURE, payload);
                 errorCallback(e, 'addProduct failure');
             });
     },
-    getProducts (wishlist) {
+    getProducts (wishlist, { page }) {
         const event = events.FETCH_PRODUCTS;
         this.dispatch(event);
+        const limit = page * queryLimit;
 
-        API.fetchCollection({resource: 'wishlists', collection: wishlist, page: 1})
+        // Request a multiplied limit and page:1 for infinite scrolling/lazy loaded products
+        API.fetchCollection({ resource: 'wishlists', collection: wishlist, page: 1, limit })
             .then(({ body }) => {
                 const payload = _.map(body, cleanseIncomingParams);
-                eventFactory.bind(this)(event, eventsEnums.SUCCESS, payload);
+                eventFactory.bind(this)(event, eventTypes.SUCCESS, payload);
             }, errorCallback);
     },
 
@@ -100,10 +103,10 @@ const actions = {
         API.updateProduct(data, wishlist)
             .then(({ body }) => {
                 payload.product = cleanseIncomingParams(body.item);
-                eventFactory.bind(this)(event, eventsEnums.SUCCESS, payload);
+                eventFactory.bind(this)(event, eventTypes.SUCCESS, payload);
             },
             (e) => {
-                eventFactory.bind(this)(event, eventsEnums.FAILURE, payload);
+                eventFactory.bind(this)(event, eventTypes.FAILURE, payload);
                 errorCallback(e, 'updateProduct failure');
             });
     },
@@ -116,10 +119,10 @@ const actions = {
         const data = cleanseOutgoingParams(product);
         API.deleteProduct(data, wishlist)
             .then(() => {
-                    eventFactory.bind(this)(event, eventsEnums.SUCCESS, payload);
+                    eventFactory.bind(this)(event, eventTypes.SUCCESS, payload);
                 },
                 (e) => {
-                    eventFactory.bind(this)(event, eventsEnums.FAILURE, payload);
+                    eventFactory.bind(this)(event, eventTypes.FAILURE, payload);
                     errorCallback(e, 'deleteProduct failure');
                 });
     },
@@ -130,7 +133,7 @@ const actions = {
 
         API.fetchCollection({ resource: 'wishlists' })
             .then(({ body }) => {
-                eventFactory.bind(this)(event, eventsEnums.SUCCESS, body);
+                eventFactory.bind(this)(event, eventTypes.SUCCESS, body);
             }, errorCallback);
     }
 };

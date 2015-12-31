@@ -1,5 +1,6 @@
 'use strict';
 
+const _ = require('lodash');
 const superagent = require('superagent');
 const Promise = require('native-promise-only');
 const transform = require('../../common/transforms');
@@ -26,7 +27,7 @@ function nameError( errType ) {
  * @param type
  * @param data
  */
-const xhr = (path, type = 'get', data = {}) => new Promise((resolve, reject) => {
+const xhr = (path, type = 'get', data = {}, query = {}) => new Promise((resolve, reject) => {
     let request;
     switch (type) {
         case 'delete':
@@ -41,6 +42,10 @@ const xhr = (path, type = 'get', data = {}) => new Promise((resolve, reject) => 
         default:
             request = superagent.get(path);
             break;
+    }
+
+    if (_.some(query)) {
+        request.query(query);
     }
 
     if ('get' !== type && csrfToken) {
@@ -136,9 +141,9 @@ const API = {
                 })
         );
     },
-    fetchCollection ({ resource, collection, page }) {
+    fetchCollection ({ resource, collection, page, limit }) {
         const path = transform.route(enums.routes.collection, { resource, collection });
-        return new Promise((resolve, reject) => xhr(path, 'get')
+        return new Promise((resolve, reject) => xhr(path, 'get', null, { page, limit })
             .then(resolve, reject)
             .catch((e) => {
                 console.warn('XHR: fetchCollection error', e);

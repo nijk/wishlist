@@ -11,7 +11,6 @@ const MongoDB = require('mongodb');
 const MongoURL = 'mongodb://localhost:27017/';
 const Promise = require('native-promise-only');
 const assert = require('assert');
-const queryLimit = 10;
 
 /**
  * Get the name of the DB based on the user/resource combination
@@ -55,9 +54,6 @@ module.exports = {
             });
     }),
     createDocument: ({ user, resource, collection, doc }) => new Promise((resolve, reject) => {
-
-        console.info('createDocument', user, resource, collection, doc);
-
         connectDB({ user, resource })
             .then((db) => {
                 db.collection(collection)
@@ -110,7 +106,7 @@ module.exports = {
                 return reject({ msg: 'DB:removeDocument error!', err: err });
             });
     }),
-    retrieveCollections: ({ user, resource, pageNum }) => new Promise((resolve, reject) => {
+    retrieveCollections: ({ user, resource, page, limit }) => new Promise((resolve, reject) => {
         connectDB({ user, resource })
             .then((db) => db.listCollections({ name: { $not: /^system.*/ } }).toArray()
             .then((collections) => {
@@ -122,14 +118,14 @@ module.exports = {
                 return reject({ msg: 'DB:retrieveCollections error!', err });
             });
     }),
-    retrieveDocuments: ({ user, resource, collection, pageNum }) => new Promise((resolve, reject) => {
+    retrieveDocuments: ({ user, resource, collection, page, limit }) => new Promise((resolve, reject) => {
         connectDB({ user, resource })
             .then((db) => {
                 db.collection(collection)
                     .find({})
                     .sort({_id: -1})
-                    .skip((pageNum -1) * queryLimit)
-                    /*.limit(queryLimit)*/
+                    .skip((pageNum -1) * limit)
+                    .limit(queryLimit)
                     .toArray()
                     .then((docs) => {
                         db.close();

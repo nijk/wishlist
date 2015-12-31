@@ -41,7 +41,8 @@ module.exports = React.createClass({
             products: productsStore.getProducts(),
             isEditingProduct: productsStore.isEditing,
             isUpdatingProduct: productsStore.isUpdating(),
-            addURL: ''
+            addURL: '',
+            currentPage: productsStore.getCurrentPage()
         };
     },
 
@@ -76,7 +77,7 @@ module.exports = React.createClass({
     },
 
     componentDidMount () {
-        const getProducts = core.actions.getProducts.bind(this, this.props.params.wishlist);
+        const getProducts = core.actions.getProducts.bind(this, this.props.params.wishlist, { page: this.state.currentPage });
         getProducts();
 
         core.store('Products').on(events.MODIFY_PRODUCT_SUCCESS, () => setTimeout(getProducts));

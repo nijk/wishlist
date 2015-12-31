@@ -13,7 +13,7 @@ const ogScraper = require('open-graph-scraper');
 // const ineed = require('ineed');
 // const auth = require('./auth');
 const transform = require('../common/transforms');
-const enums = require('../common/enums.api.js');
+const { resources, routes, queryLimit } = require('../common/enums.api.js');
 
 // @todo: log errors server-side
 function errorHandler (err, errCode, msg, res) {
@@ -35,7 +35,7 @@ function validator (req, res, next) {
     // @todo: SECURITY handle/cleanse request data
     const { resource } = req.params;
 
-    if (resource && !_.includes(enums.resources, resource)) {
+    if (resource && !_.includes(resources, resource)) {
         return errorHandler({}, 400, 'Invalid resource', res);
     }
 
@@ -56,13 +56,13 @@ module.exports = (app) => {
     /**
      *  API: GET CSRF Token
      */
-    app.get(enums.routes.auth.token, csrf, validator, (req, res) => res.json({ token: req.csrfToken() }) );
+    app.get(routes.auth.token, csrf, validator, (req, res) => res.json({ token: req.csrfToken() }) );
 
     /**
      * API: GET Product URL
      * Fetch URL data: OG Tags/Scraped Data
      */
-    app.get(enums.routes.product, validator, (req, res) => {
+    app.get(routes.product, validator, (req, res) => {
         const url = decodeURIComponent(req.params.url);
         const resultDefaults = { opengraph: false, scraped: false };
 
@@ -79,7 +79,7 @@ module.exports = (app) => {
      * API: POST Resource/Collection
      * Create Collection/Document
      */
-    app.post(enums.routes.collection, csrf, validator, (req, res) => {
+    app.post(routes.collection, csrf, validator, (req, res) => {
         const user = 'nijk'; // @todo: User Authentication
 
         const { resource, collection } = req.params;
@@ -93,7 +93,7 @@ module.exports = (app) => {
         } else if (item) {
             DB.createCollection({ user, resource, collection: item.name })
                 .then((name) => {
-                    const location = transform.route(enums.routes.collection, { resource: resource, collection: name });
+                    const location = transform.route(routes.collection, { resource: resource, collection: name });
                     res.status(201);
                     res.set('Location', location);
                     res.send();
@@ -108,7 +108,7 @@ module.exports = (app) => {
      * API: PUT Document
      * Update Document
      */
-    app.put(enums.routes.collection, csrf, validator, (req, res) => {
+    app.put(routes.collection, csrf, validator, (req, res) => {
         const user = 'nijk'; // @todo: User Authentication
 
         const { resource, collection } = req.params;
@@ -128,7 +128,7 @@ module.exports = (app) => {
      * API: DELETE Document
      * Remove Document
      */
-    app.delete(enums.routes.collection, /*csrf, */validator, (req, res) => {
+    app.delete(routes.collection, /*csrf, */validator, (req, res) => {
         const user = 'nijk'; // @todo: User Authentication
 
         const { resource, collection, id } = req.params;
@@ -147,20 +147,22 @@ module.exports = (app) => {
      * API: GET Resource/Collection
      * With paging
      */
-    app.get(enums.routes.collection, validator, (req, res) => {
+    app.get(routes.collection, validator, (req, res) => {
         const user = 'nijk'; // @todo: User Authentication
 
         const { resource, collection/*, type, id*/ } = req.params;
+        const { page, limit } = req.query;
 
-        let pageNum = 1;
-        // if ('page' === type && id) { pageNum = id }
+        page = page || 1;
+        limit = limit || queryLimit;
+
 
         if (collection) {
-            DB.retrieveDocuments({ user, resource, collection, pageNum })
+            DB.retrieveDocuments({ user, resource, collection, page, limit })
                 .then(res.json)
                 .catch((err) => errorHandler(err, 500, 'Could not retrieve documents', res));
         } else {
-            DB.retrieveCollections({ user, resource, pageNum })
+            DB.retrieveCollections({ user, resource, page, limit })
                 .then(res.json)
                 .catch((err) => errorHandler(err, 500, 'Could not retrieve collections', res));
 

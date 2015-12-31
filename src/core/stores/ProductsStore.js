@@ -15,7 +15,8 @@ let store = {
     fetching: false,
     updating: false,
     productToAdd: undefined,
-    products: []
+    products: [],
+    currentPage: 1
 };
 
 const setProduct = (product) => {
@@ -163,6 +164,10 @@ module.exports = Fluxxor.createStore({
 
     getProductToAdd () {
         return store.productToAdd;
+    },
+
+    getCurrentPage () {
+        return store.currentPage;
     },
 
     isFetching () {
