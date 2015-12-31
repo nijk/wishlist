@@ -6,7 +6,6 @@ const transform = require('../../common/transforms');
 const enums = require('../../common/enums.api.js');
 
 let csrfToken;
-let wishlist = 'fooBar';
 let user = 'nijk';
 
 /**
@@ -31,7 +30,7 @@ const xhr = (path, type = 'get', data = {}) => new Promise((resolve, reject) => 
     let request;
     switch (type) {
         case 'delete':
-            request = superagent.del(path, data);
+            request = superagent.del(path);
             break;
         case 'post':
             request = superagent.post(path, data);
@@ -98,8 +97,8 @@ const API = {
             })
             .catch((e) => console.warn('XHR: fetchProduct error', e));
     },
-    addProduct (product) {
-        const path = transform.route(enums.routes.collection, { resource: 'wishlists', collection: wishlist });
+    addProduct (product, collection) {
+        const path = transform.route(enums.routes.collection, { resource: 'wishlists', collection });
         const addProduct = (resolve, reject) => {
             xhr(path, 'post', { user, item: product })
                 .then(resolve)
@@ -110,8 +109,8 @@ const API = {
         };
         return preflightPOST(addProduct);
     },
-    updateProduct (product) {
-        const path = transform.route(enums.routes.collection, { resource: 'wishlists', collection: wishlist });
+    updateProduct (product, collection) {
+        const path = transform.route(enums.routes.collection, { resource: 'wishlists', collection });
         const updateProduct = (resolve, reject) => {
             xhr(path, 'put', { user, item: product })
                 .then(resolve)
@@ -122,10 +121,10 @@ const API = {
         };
         return preflightPOST(updateProduct);
     },
-    deleteProduct (product) {
+    deleteProduct (product, collection) {
         const path = transform.route(enums.routes.collection, {
             resource: 'wishlists',
-            collection: wishlist,
+            collection,
             id: product._id
         });
 
@@ -141,12 +140,10 @@ const API = {
         const path = transform.route(enums.routes.collection, { resource, collection });
         return new Promise((resolve, reject) => xhr(path, 'get')
             .then(resolve, reject)
-        );
-    },
-    fetchWishlists () {
-        const path = transform.route(enums.routes.collection, { resource: 'wishlists' });
-        return new Promise((resolve, reject) => xhr(path, 'get')
-            .then(resolve, reject)
+            .catch((e) => {
+                console.warn('XHR: fetchCollection error', e);
+                reject(e);
+            })
         );
     }
 };

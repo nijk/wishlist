@@ -11,6 +11,7 @@ const _ = require('lodash');
 const core = require('core/Core');
 const React = require('react');
 const classnames = require('classnames');
+const events = require('../events');
 
 // Components
 const AddURL = require('../components/AddURL');
@@ -23,7 +24,7 @@ require('style/wishlist');
 require('style/overlay');
 /* ------ */
 
-const Wishlist = React.createClass({
+module.exports = React.createClass({
     displayName: 'Wishlist',
 
     mixins: [
@@ -66,7 +67,7 @@ const Wishlist = React.createClass({
 
     onAddProduct (e) {
         e.preventDefault();
-        core.actions.addProduct( this.state.productToAdd );
+        core.actions.addProduct( this.state.productToAdd, this.props.params.wishlist );
     },
 
     onClickProduct (e) {
@@ -75,7 +76,10 @@ const Wishlist = React.createClass({
     },
 
     componentDidMount () {
-        core.actions.getProducts( this.props.params.wishlist );
+        const getProducts = core.actions.getProducts.bind(this, this.props.params.wishlist);
+        getProducts();
+
+        core.store('Products').on(events.MODIFY_PRODUCT_SUCCESS, () => setTimeout(getProducts));
     },
 
     _renderAddURL () {
@@ -162,5 +166,3 @@ const Wishlist = React.createClass({
         );
     }
 });
-
-module.exports = Wishlist;

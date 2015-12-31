@@ -61,16 +61,15 @@ const actions = {
         };
         API.fetchProduct(url, callback);
     },
-    addProduct (product) {
+    addProduct (product, wishlist) {
         const event = events.MODIFY_PRODUCT;
         const payload = { type: 'update', product };
         this.dispatch(event, payload);
 
-        API.addProduct(product)
+        API.addProduct(product, wishlist)
             .then(({ body }) => {
                 payload.product = body[0];
                 eventFactory.bind(this)(event, eventsEnums.SUCCESS, payload);
-                actions.getProducts.bind(this)();
             },
             (e) => {
                 eventFactory.bind(this)(event, eventsEnums.FAILURE, payload);
@@ -98,12 +97,10 @@ const actions = {
         this.dispatch(event, payload);
 
         const data = cleanseOutgoingParams(product);
-        API.updateProduct(data)
+        API.updateProduct(data, wishlist)
             .then(({ body }) => {
                 payload.product = cleanseIncomingParams(body.item);
                 eventFactory.bind(this)(event, eventsEnums.SUCCESS, payload);
-                // Fetch all products
-                actions.getProducts.bind(this)(wishlist);
             },
             (e) => {
                 eventFactory.bind(this)(event, eventsEnums.FAILURE, payload);
@@ -117,11 +114,9 @@ const actions = {
         this.dispatch(event, payload);
 
         const data = cleanseOutgoingParams(product);
-        API.deleteProduct(data)
+        API.deleteProduct(data, wishlist)
             .then(() => {
                     eventFactory.bind(this)(event, eventsEnums.SUCCESS, payload);
-                    // Fetch all products
-                    actions.getProducts.bind(this)(wishlist);
                 },
                 (e) => {
                     eventFactory.bind(this)(event, eventsEnums.FAILURE, payload);
@@ -133,7 +128,7 @@ const actions = {
         const event = events.FETCH_WISHLISTS;
         this.dispatch(event);
 
-        API.fetchCollection({resource: 'wishlists'})
+        API.fetchCollection({ resource: 'wishlists' })
             .then(({ body }) => {
                 eventFactory.bind(this)(event, eventsEnums.SUCCESS, body);
             }, errorCallback);
