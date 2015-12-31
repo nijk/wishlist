@@ -18,18 +18,15 @@ let store = {
     products: []
 };
 
-// @todo: this might be better if it incremented the last key instead of object length.
 const setProduct = (product) => {
     store.products.push(product);
     unsetProductToAdd();
 };
 
-// @todo: this might be better if it incremented the last key instead of object length.
 const unsetAllProducts = () => {
     store.products = [];
 };
 
-// @todo: this might be better if it incremented the last key instead of object length.
 const unsetProductToAdd = () => {
     store.productToAdd = undefined;
 };
@@ -39,10 +36,37 @@ const removeProductFromEditingMode = (product) => {
     _.remove(store.productsInEditMode, (i) => i === product.id && product.id);
 };
 
-const ProductsStore = Fluxxor.createStore({
+const transformProduct = (url, product) => {
+    // @todo: use lodash _.template ??
+    const item = { url: url };
+
+    // Transform OpenGraph data
+    if ( product.opengraph ) {
+        item.url = product.data.ogUrl || product.data.url;
+        item.siteName = product.data.ogSiteName || product.data.siteName;
+        item.title = product.data.ogTitle || product.data.title;
+        item.description = product.data.ogDescription || product.data.description;
+        item.images = [ product.data.ogImage || product.data.image ];
+    }
+
+    //Transform scraped data
+    if ( product.scraped ) {
+        item.images = product.data.images;
+    }
+
+    return item;
+};
+
+const validateProduct = ({ url, title, images }) => {
+    return url && title && images && _.each(images, _.has('url'));
+};
+
+module.exports = Fluxxor.createStore({
     initialize () {
         this.bindActions(
             events.ADD_URL, this.onAddURL,
+
+            events.FETCH_PRODUCTS, this.onFetchProducts,
 
             events.MODIFY_PRODUCT, this.onModifyProduct,
             events.MODIFY_PRODUCT_SUCCESS, this.onModifyProductSuccess,
@@ -50,39 +74,18 @@ const ProductsStore = Fluxxor.createStore({
 
             events.EDIT_PRODUCT, this.onEditProduct,
 
-            events.FETCH_PRODUCTS_SUCCESS, this.onFetchProducts
+            events.FETCH_PRODUCTS_SUCCESS, this.onFetchProductsSuccess
         );
     },
 
-    // @todo: use lodash _.template ??
-    transformProduct (url, product) {
-        const item = { url: url };
+    onFetchProducts () {
 
-        // Transform OpenGraph data
-        if ( product.opengraph ) {
-            item.url = product.data.ogUrl || product.data.url;
-            item.siteName = product.data.ogSiteName || product.data.siteName;
-            item.title = product.data.ogTitle || product.data.title;
-            item.description = product.data.ogDescription || product.data.description;
-            item.images = [ product.data.ogImage || product.data.image ];
-        }
-
-        //Transform scraped data
-        if ( product.scraped ) {
-            item.images = product.data.images;
-        }
-
-        return item;
-    },
-
-    validateProduct ({ url, title, images }) {
-        return url && title && images && _.each(images, _.has('url'));
     },
 
     onAddURL ({ url, product }) {
         if (product.success) {
-            const productToAdd = this.transformProduct(url, product);
-            if ( this.validateProduct(productToAdd) ) {
+            const productToAdd = transformProduct(url, product);
+            if ( validateProduct(productToAdd) ) {
                 store.productToAdd = productToAdd;
                 this.emit( events.ADD_URL_SUCCESS );
             } else {
@@ -136,12 +139,12 @@ const ProductsStore = Fluxxor.createStore({
         this.emit( events.CHANGE );
     },
 
-    onFetchProducts (products) {
+    onFetchProductsSuccess (products) {
         // Clear down stored products first.
         unsetAllProducts();
 
         _.each(products, (product) => {
-            if (this.validateProduct(product)) {
+            if (validateProduct(product)) {
                 setProduct(product);
             } else {
                 console.warn(events.FETCH_PRODUCTS_FAILURE, product, store.products);
@@ -177,5 +180,3 @@ const ProductsStore = Fluxxor.createStore({
         return _.indexOf(store.productsInEditMode, id) > -1;
     }
 });
-
-module.exports = ProductsStore;

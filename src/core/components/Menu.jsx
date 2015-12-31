@@ -23,35 +23,29 @@ module.exports = React.createClass({
     displayName: 'Menu',
 
     propTypes: {
-        classes: React.PropTypes.shape({
-            nav: React.PropTypes.objectOf(React.PropTypes.string),
-            list: React.PropTypes.objectOf(React.PropTypes.string)
-        }),
-        menu: React.PropTypes.shape({
-            title: React.PropTypes.string,
-            items: React.PropTypes.arrayOf(
-                React.PropTypes.shape({
-                    name: React.PropTypes.string.isRequired,
-                    link: React.PropTypes.shape({
-                        title: React.PropTypes.string,
-                        url: React.PropTypes.string.isRequired
-                    }),
-                    classes: React.PropTypes.objectOf(React.PropTypes.string)
-                })
-            )
-        })
+        title: React.PropTypes.string,
+        items: React.PropTypes.arrayOf(
+            React.PropTypes.shape({
+                name: React.PropTypes.string.isRequired,
+                link: React.PropTypes.shape({
+                    title: React.PropTypes.string,
+                    url: React.PropTypes.string.isRequired
+                }),
+                classes: React.PropTypes.objectOf(React.PropTypes.bool)
+            })
+        )
     },
 
     createLinks (items) {
         return _.map(items, (item, index) => {
             return (
-                <li key={ `menu-item-${index+1}` }>
+                <li key={ `menu-item-${index+1}` } className="menu__item">
                     <Link
                         key="link"
                         to={ item.link.url }
                         title={ item.link.title }
-                        className="menu-item"
-                        activeClassName="menu-item--active"
+                        className="menu__link"
+                        activeClassName="menu__link--active"
                     >
                     { item.name }
                     </Link>
@@ -62,21 +56,15 @@ module.exports = React.createClass({
 
     render () {
         const menu = {
-            title: this.props.menu.title,
-            tag: this.props.type || 'ul',
-            items: this.createLinks(this.props.menu.items),
-            classes: {}
+            title: this.props.title,
+            items: this.createLinks(this.props.items),
+            className: this.props.className ? `menu ${this.props.className}` : 'menu'
         };
 
-        if (this.props.classes) {
-            menu.classes.nav = (this.props.classes && this.props.classes.nav) ? classnames(this.props.classes.nav) : null;
-            menu.classes.list = (this.props.classes && this.props.classes.list) ? classnames(this.props.classes.list) : null;
-        }
-
         return (
-            <nav className={ menu.classes.nav }>
+            <nav className={ menu.className }>
                 { menu.title ? <Text tag="h2" text={ menu.title } /> : null }
-                <List className={ menu.classes.list } items={ menu.items } />
+                <List className="menu__list" items={ menu.items } />
             </nav>
         );
     }

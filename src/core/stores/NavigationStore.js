@@ -18,12 +18,9 @@ module.exports = Fluxxor.createStore({
         //this.bindActions();
     },
 
-    addMenu (key, { title, items }) {
+    addMenu (key, items) {
         if (!_.has(store.menus, key)) {
-            store.menus[key] = {
-                title: title,
-                items: items
-            };
+            store.menus[key] = items;
         }
     },
 

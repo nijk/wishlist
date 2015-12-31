@@ -44,7 +44,7 @@ const Wishlists = React.createClass({
             return {
                 name: item.name,
                 link: {
-                    url: transform.route(routes.wishlist, { title: item.name.toLowerCase() })
+                    url: transform.route(routes.wishlist, { wishlist: item.name.toLowerCase() })
                 }
             }
         });

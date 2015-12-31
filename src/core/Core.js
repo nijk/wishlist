@@ -39,5 +39,6 @@ core.addStores({
 });
 
 core.store('Navigation').addMenu(menus._keys.main, menus.main);
+core.store('Navigation').addMenu(menus._keys.utility, menus.utility);
 
 module.exports = core;

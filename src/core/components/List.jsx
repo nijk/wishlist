@@ -30,8 +30,7 @@ const List = React.createClass({
                         url: React.PropTypes.string.isRequired,
                         onClick: React.PropTypes.func
                     }),
-                    component: React.PropTypes.element,
-                    classes: React.PropTypes.objectOf(React.PropTypes.string)
+                    classes: React.PropTypes.objectOf(React.PropTypes.bool)
                 })
             ])
         )
@@ -72,7 +71,7 @@ const List = React.createClass({
         const list = {
             tag: this.props.type || 'ul',
             items: this.props.items,
-            classes: this.props.classes ? classnames(this.props.classes) : null
+            classes: this.props.classes ? classnames(this.props.classes) : this.props.className
         };
 
         return ( <list.tag className={ list.classes }>{ _.map(list.items, this._renderItem) }</list.tag> );

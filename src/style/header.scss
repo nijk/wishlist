@@ -1,40 +1,51 @@
 @import 'variables';
 
 .app-header {
-    min-height: 5rem;
+    display: flex;
+    align-items: center;
     margin-bottom: 5rem;
-    padding: 0.5rem 2.0rem;
-
+    padding: 0 2.0rem;
     background-color: $primary;
 
-    h1, h2, h3, h4, h5, h6 {
-        display: inline-block;
-        margin: 0;
-        color: $white;
-    }
-
-    nav, ul {
-        display: inline-flex;
+    .menu {
         margin: 0;
     }
 
-    li {
+    .menu__utility-menu {
+        margin-left: auto;
+    }
+
+    .menu__list {
+        display: flex;
+        margin: 0;
+    }
+
+    .menu__item {
+        display: block;
         list-style: none;
-        margin-right: 2rem;
+        margin: 0;
     }
 
     .app-name {
-        margin-right: 2rem;
+        display: inline-flex;
+        margin: 0 2rem 0 0;
         font-size: 3.5rem;
+        color: $white;
     }
 
-    .menu-item {
-        padding: 1rem;
+    .menu__link {
+        display: block;
+        padding: 1rem 1rem 0.6rem;
         text-decoration: none;
+        border-bottom: 0.4rem solid transparent;
+
+        &:hover {
+            background-color: darken($primary, 3%);
+            border-bottom-color: rgba($white, 0.5);
+        }
     }
 
-    .menu-item--active {
-        padding-bottom: 0.8rem;
-        border-bottom: 0.2rem solid $white;
+    .menu__link--active {
+        border-bottom-color: $white;
     }
 }

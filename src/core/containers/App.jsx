@@ -18,6 +18,7 @@ const { Router, Route, Link } = require('react-router');
 const createBrowserHistory = require('history/lib/createBrowserHistory');
 
 const core = require('core/Core');
+const routes = require('../../../common/enums.routes');
 const AppContainer = require('./AppContainer');
 const Wishlists = require('./Wishlists');
 const Wishlist = require('./Wishlist');
@@ -37,9 +38,10 @@ module.exports = {
     mount () {
         render((
             <Router history={ createBrowserHistory() } createElement={ createElement }>
-                <Route path="/" component={ AppContainer }>
-                    <Route path="/wishlists" component={ Wishlists }/>
-                    <Route path="/wishlists/:wishlist" component={ Wishlist }/>
+                <Route path={ routes.home } component={ AppContainer }>
+                    <Route path={ routes.wishlists } component={ Wishlists }/>
+                    <Route path={ routes.wishlist } component={ Wishlist }/>
+                    <Route path={ routes.user }/>
                 </Route>
             </Router>
         ), document.getElementById('app-container'));

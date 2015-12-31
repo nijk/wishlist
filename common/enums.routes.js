@@ -5,10 +5,10 @@
 module.exports = {
     home: '/',
     wishlists: '/wishlists',
-    wishlist: '/wishlists/:title',
+    wishlist: '/wishlists/:wishlist',
     login: '/login',
     register: '/register',
     password: '/password',
-    user: '/:user',
-    profile: '/:user/profile'
+    user: '/user/:user',
+    profile: '/user/:user/profile'
 };

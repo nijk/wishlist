@@ -15,42 +15,36 @@ const keys = keymirror({
 
 module.exports = {
     '_keys': keys,
-    [keys.main]: {
-        title: null,
-        items: [
-            {
-                name: 'Home',
-                link: {
-                    title: 'Home page',
-                    url: routes.home
-                }
-            },
-            {
-                name: 'Wishlists',
-                link: {
-                    title: 'Your wishlists',
-                    url: routes.wishlists
-                }
+    [keys.main]: [
+        {
+            name: 'Home',
+            link: {
+                title: 'Home page',
+                url: routes.home
             }
-        ]
-    },
-    [keys.utility]: {
-        title: 'Utility menu',
-        items: [
-            {
-                name: 'User',
-                link: {
-                    title: 'You',
-                    url: routes.user
-                }
-            },
-            {
-                name: 'Profile',
-                link: {
-                    title: 'Your profile',
-                    url: routes.profile
-                }
+        },
+        {
+            name: 'Wishlists',
+            link: {
+                title: 'Your wishlists',
+                url: routes.wishlists
             }
-        ]
-    }
+        }
+    ],
+    [keys.utility]: [
+        {
+            name: 'User',
+            link: {
+                title: 'You',
+                url: routes.user
+            }
+        },
+        {
+            name: 'Profile',
+            link: {
+                title: 'Your profile',
+                url: routes.profile
+            }
+        }
+    ]
 };
