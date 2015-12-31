@@ -155,7 +155,7 @@ const Product = React.createClass({
                     />
                     <Input
                         type="textarea"
-                        name="product-title"
+                        name="product-description"
                         value={ this.props.product.description }
                         onChange={ this.props.onHandleInput }
                     />

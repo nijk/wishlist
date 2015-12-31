@@ -100,7 +100,7 @@ module.exports = React.createClass({
         };
 
         return (
-            <label className={ classnames( this.props.labelClassName ) } htmlFor={ this.props.name }>
+            <label key={ this.props.name } className={ classnames( this.props.labelClassName ) } htmlFor={ this.props.name }>
                 { this.props.label }
                 <input.tag
                     { ...this.props }
