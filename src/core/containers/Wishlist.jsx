@@ -12,12 +12,15 @@ const core = require('core/Core');
 const React = require('react');
 const classnames = require('classnames');
 const events = require('../events');
+const { queryLimit } = require('../../../common/enums.api');
 
 // Components
 const AddURL = require('../components/AddURL');
 const Button = require('../components/Button');
 const Product = require('../components/Product');
 const List = require('../components/List');
+const Text = require('../components/Text');
+const VisibilitySensor = require('react-visibility-sensor');
 
 /* Styles */
 require('style/wishlist');
@@ -39,10 +42,11 @@ module.exports = React.createClass({
             started: core.store('Core').hasStarted(),
             productToAdd: productsStore.getProductToAdd(),
             products: productsStore.getProducts(),
+            productCount: productsStore.getProductCount(),
             isEditingProduct: productsStore.isEditing,
             isUpdatingProduct: productsStore.isUpdating(),
-            addURL: '',
-            currentPage: productsStore.getCurrentPage()
+            isFetchingProducts: productsStore.isFetching(),
+            addURL: ''
         };
     },
 
@@ -76,11 +80,18 @@ module.exports = React.createClass({
         console.info('onClickProduct handler');
     },
 
-    componentDidMount () {
-        const getProducts = core.actions.getProducts.bind(this, this.props.params.wishlist, { page: this.state.currentPage });
-        getProducts();
+    getProducts () {
+        const remainder = this.state.productCount % queryLimit;
+        const params = {
+            limit: ((this.state.productCount - remainder) + queryLimit)
+        };
+        core.actions.getProducts(this.props.params.wishlist, params);
+    },
 
-        core.store('Products').on(events.MODIFY_PRODUCT_SUCCESS, () => setTimeout(getProducts));
+    componentDidMount () {
+        this.getProducts();
+
+        core.store('Products').on(events.MODIFY_PRODUCT_SUCCESS, () => setTimeout(this.getProducts));
     },
 
     _renderAddURL () {
@@ -151,6 +162,28 @@ module.exports = React.createClass({
         return <List key="products" items={ products } />
     },
 
+    _renderFooter () {
+        return (
+            <footer>
+                <VisibilitySensor delay={ 800 } onChange={ this.loadMore }/>
+                <Text tag="p" text="Loading..." className="loading-more"/>
+            </footer>
+        );
+    },
+
+    canLoadMore () {
+        return this.state.productCount > 0
+            && !this.state.isFetchingProducts
+            && !(this.state.productCount % 10);
+    },
+
+    loadMore (isVisible) {
+
+        if ( isVisible && this.canLoadMore() ) {
+            this.getProducts();
+        }
+    },
+
     render () {
         const overlayClasses = {
             overlay: true,
@@ -162,6 +195,7 @@ module.exports = React.createClass({
                 { this._renderAddURL() }
                 { (this.state.productToAdd) ? this._renderAddProduct() : null }
                 { (_.size(this.state.products) > 0) ? this._renderWishlist() : null }
+                { this.canLoadMore() ? this._renderFooter() : null }
                 <div className={ classnames(overlayClasses) }></div>
             </div>
         );

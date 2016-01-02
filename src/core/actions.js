@@ -77,10 +77,9 @@ const actions = {
                 errorCallback(e, 'addProduct failure');
             });
     },
-    getProducts (wishlist, { page }) {
+    getProducts (wishlist, { limit }) {
         const event = events.FETCH_PRODUCTS;
         this.dispatch(event);
-        const limit = page * queryLimit;
 
         // Request a multiplied limit and page:1 for infinite scrolling/lazy loaded products
         API.fetchCollection({ resource: 'wishlists', collection: wishlist, page: 1, limit })

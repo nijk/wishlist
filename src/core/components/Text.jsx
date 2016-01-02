@@ -13,7 +13,7 @@ const Text = React.createClass({
 
     propTypes: {
         tag: React.PropTypes.oneOf(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span']),
-        text: React.PropTypes.string
+        text: React.PropTypes.string.isRequired
     },
 
     render () {

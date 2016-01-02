@@ -149,13 +149,11 @@ module.exports = (app) => {
      */
     app.get(routes.collection, validator, (req, res) => {
         const user = 'nijk'; // @todo: User Authentication
-
         const { resource, collection/*, type, id*/ } = req.params;
-        const { page, limit } = req.query;
+        let { page, limit } = req.query;
 
-        page = page || 1;
-        limit = limit || queryLimit;
-
+        page = parseInt(page || 1);
+        limit = parseInt(limit || queryLimit);
 
         if (collection) {
             DB.retrieveDocuments({ user, resource, collection, page, limit })

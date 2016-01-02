@@ -15,8 +15,7 @@ let store = {
     fetching: false,
     updating: false,
     productToAdd: undefined,
-    products: [],
-    currentPage: 1
+    products: []
 };
 
 const setProduct = (product) => {
@@ -67,7 +66,6 @@ module.exports = Fluxxor.createStore({
         this.bindActions(
             events.ADD_URL, this.onAddURL,
 
-            events.FETCH_PRODUCTS, this.onFetchProducts,
 
             events.MODIFY_PRODUCT, this.onModifyProduct,
             events.MODIFY_PRODUCT_SUCCESS, this.onModifyProductSuccess,
@@ -75,12 +73,10 @@ module.exports = Fluxxor.createStore({
 
             events.EDIT_PRODUCT, this.onEditProduct,
 
-            events.FETCH_PRODUCTS_SUCCESS, this.onFetchProductsSuccess
+            events.FETCH_PRODUCTS, this.onFetchProducts,
+            events.FETCH_PRODUCTS_SUCCESS, this.onFetchProductsSuccess,
+            events.FETCH_PRODUCTS_FAILURE, this.onFetchProductsFailure
         );
-    },
-
-    onFetchProducts () {
-
     },
 
     onAddURL ({ url, product }) {
@@ -129,7 +125,7 @@ module.exports = Fluxxor.createStore({
         this.emit( events.MODIFY_PRODUCT_SUCCESS, { type, product } );
         this.emit( events.CHANGE );
     },
-    
+
     onModifyProductFailure ({ type, product }) {
         store.updating = false;
         if ('update' === type || 'add' === type) {
@@ -140,7 +136,13 @@ module.exports = Fluxxor.createStore({
         this.emit( events.CHANGE );
     },
 
+    onFetchProducts () {
+        store.fetching = true;
+        this.emit( events.CHANGE );
+    },
+
     onFetchProductsSuccess (products) {
+        store.fetching = false;
         // Clear down stored products first.
         unsetAllProducts();
 
@@ -151,6 +153,12 @@ module.exports = Fluxxor.createStore({
                 console.warn(events.FETCH_PRODUCTS_FAILURE, product, store.products);
             }
         });
+        this.emit( events.CHANGE );
+    },
+
+    onFetchProductsFailure () {
+        store.fetching = false;
+        this.emit(events.FETCH_PRODUCTS_FAILURE);
         this.emit( events.CHANGE );
     },
 
@@ -166,8 +174,8 @@ module.exports = Fluxxor.createStore({
         return store.productToAdd;
     },
 
-    getCurrentPage () {
-        return store.currentPage;
+    getProductCount () {
+        return store.products.length;
     },
 
     isFetching () {

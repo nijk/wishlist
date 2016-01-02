@@ -124,8 +124,8 @@ module.exports = {
                 db.collection(collection)
                     .find({})
                     .sort({_id: -1})
-                    .skip((pageNum -1) * limit)
-                    .limit(queryLimit)
+                    .skip((page -1) * limit)
+                    .limit(limit)
                     .toArray()
                     .then((docs) => {
                         db.close();

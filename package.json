@@ -90,6 +90,7 @@
     "react": "^0.14.2",
     "react-dom": "^0.14.2",
     "react-router": "^1.0.3",
+    "react-visibility-sensor": "^3.0.0",
     "serve-static": "^1.10.0",
     "superagent": "^1.4.0"
   },
