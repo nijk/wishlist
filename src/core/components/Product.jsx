@@ -37,7 +37,8 @@ const Product = React.createClass({
             actions: React.PropTypes.arrayOf(
                 React.PropTypes.shape({
                     active: React.PropTypes.bool.isRequired,
-                    type: React.PropTypes.oneOf(['edit', 'save', 'delete']),
+                    classes: React.PropTypes.objectOf(React.PropTypes.bool),
+                    type: React.PropTypes.oneOf(['edit', 'save', 'cancel', 'delete']),
                     text: React.PropTypes.string.isRequired,
                     onClick: React.PropTypes.func
                 })
@@ -55,6 +56,9 @@ const Product = React.createClass({
                     break;
                 case 'save':
                     handler = core.actions.updateProduct.bind(this, this.props.product, this.props.params.wishlist);
+                    break;
+                case 'cancel':
+                    handler = core.actions.editProductCancel.bind(this, this.props.product);
                     break;
                 case 'delete':
                     handler = core.actions.deleteProduct.bind(this, this.props.product, this.props.params.wishlist);
@@ -79,22 +83,15 @@ const Product = React.createClass({
                         return null;
                     }
 
-                    action.classes = {
+                    const classes = _.merge({
                         product__action: true,
-                        'button-primary': false,
-                        button__link: false
-                    };
+                        button__primary: false
+                    }, action.classes);
 
-                    if ('edit' === action.type || 'save' === action.type) {
-                        action.classes['button-primary'] = true;
-                    } else if ('delete' === action.type) {
-                        action.prepend = <Text key={ 'prepend-action-delete' } tag="span" text=" or "/>;
-                        action.classes.button__link = true;
-                    }
                     return (
                         <Button
                             key={ `button-action-${ index + 1 }` }
-                            className={ action.classes }
+                            className={ classes }
                             prependElement={ action.prepend }
                             text={ action.text }
                             onClick={ this.clickHandler(action.onClick || action.type) }

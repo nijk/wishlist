@@ -1,4 +1,5 @@
 @import 'variables';
+@import '../../node_modules/skeleton-sass/skeleton/themes/fresh/_base.scss';
 
 .wishlist-products {
 
@@ -24,6 +25,7 @@
 }
 
 .product__actions {
+    display: flex;
     padding-top: 2rem;
 
     .product__action {
@@ -45,11 +47,32 @@
     }
 }
 
-.button__link {
-    padding: 0;
-    border: 0 none;
-    color: $link;
-    text-decoration: underline;
+
+button {
+    &.button__primary {
+        @extend .button-primary;
+        margin-right: 1rem;
+    }
+
+    &.button__delete {
+        @extend .button-primary;
+        margin-left: auto;
+        background-color: $danger;
+        border-color: $danger;
+
+        &:hover,
+        &:focus {
+            background-color: darken($danger, 5%);
+            border-color: darken($danger, 5%);
+        }
+    }
+
+    &.button__link {
+        padding: 0;
+        border: 0 none;
+        color: $link;
+        text-decoration: underline;
+    }
 }
 
 .loading-more {

@@ -73,6 +73,7 @@ module.exports = Fluxxor.createStore({
             events.MODIFY_PRODUCT_FAILURE, this.onModifyProductFailure,
 
             events.EDIT_PRODUCT, this.onEditProduct,
+            events.EDIT_PRODUCT_CANCEL, this.onEditProductCancel,
 
             events.FETCH_PRODUCTS, this.onFetchProducts,
             events.FETCH_PRODUCTS_SUCCESS, this.onFetchProductsSuccess,
@@ -113,6 +114,12 @@ module.exports = Fluxxor.createStore({
         this.emit( events.CHANGE );
     },
 
+    onEditProductCancel (product) {
+        removeProductFromEditingMode(product);
+
+        this.emit( events.CHANGE );
+    },
+
     onModifyProduct ({ type, product }) {
         store.updating = true;
         this.emit( events.CHANGE );
@@ -120,18 +127,14 @@ module.exports = Fluxxor.createStore({
 
     onModifyProductSuccess ({ type, product }) {
         store.updating = false;
-        if ('update' === type || 'add' === type) {
-            removeProductFromEditingMode(product);
-        }
+        removeProductFromEditingMode(product);
         this.emit( events.MODIFY_PRODUCT_SUCCESS, { type, product } );
         this.emit( events.CHANGE );
     },
 
     onModifyProductFailure ({ type, product }) {
         store.updating = false;
-        if ('update' === type || 'add' === type) {
-            removeProductFromEditingMode(product);
-        }
+        removeProductFromEditingMode(product);
         console.warn( events.MODIFY_PRODUCT_FAILURE, { type, product } );
         this.emit( events.MODIFY_PRODUCT_FAILURE, { type, product } );
         this.emit( events.CHANGE );

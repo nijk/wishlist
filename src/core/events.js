@@ -25,6 +25,7 @@ module.exports = _.extend(defaultEvents, keymirror({
     MODIFY_PRODUCT_FAILURE: null,
 
     EDIT_PRODUCT: null,
+    EDIT_PRODUCT_CANCEL: null,
 
     FETCH_PRODUCTS: null,
     FETCH_PRODUCTS_SUCCESS: null,

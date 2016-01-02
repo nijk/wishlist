@@ -93,6 +93,10 @@ const actions = {
         this.dispatch(events.EDIT_PRODUCT, product);
     },
 
+    editProductCancel (product) {
+        this.dispatch(events.EDIT_PRODUCT_CANCEL, product);
+    },
+
     updateProduct (product, wishlist) {
         const event = events.MODIFY_PRODUCT;
         const payload = { type: 'update', product };

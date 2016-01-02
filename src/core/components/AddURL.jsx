@@ -29,7 +29,7 @@ module.exports = React.createClass({
         };
         const btnClasses = {
             'button--disabled': false,
-            'button-primary': true,
+            button__primary: true,
             'add-url__button': true
         };
 

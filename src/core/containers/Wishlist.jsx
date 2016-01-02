@@ -104,6 +104,7 @@ module.exports = React.createClass({
         const actions = [{
             key: 'add-product-save',
             active: true,
+            classes: { button__primary: true},
             type: 'save',
             text: 'Save product',
             onClick: this.onAddProduct
@@ -126,24 +127,35 @@ module.exports = React.createClass({
     _renderWishlist () {
         const products = _.map(this.state.products, (product, index) => {
             let mode = 'display';
-            let actions = {
-                edit: { active: true, type: 'edit', text: 'Edit product' },
-                save: { active: false, type: 'save', text: 'Save product' },
-                delete: { active: true, type: 'delete', text: 'Remove' }
+            const classes = {
+                primary: { button__primary: true},
+                cancel: { button__link: true },
+                delete: { button__delete: true }
+            };
+            const actions = {
+                edit: { active: true, type: 'edit', text: 'Edit product', classes: classes.primary },
+                save: { active: false, type: 'save', text: 'Save product', classes: classes.primary },
+                cancel: { active: false, type: 'cancel', text: 'Cancel', classes: classes.cancel },
+                delete: { active: false, type: 'delete', text: 'Delete', classes: classes.delete }
             };
 
             if (this.state.isEditingProduct(product.id)) {
                 mode = 'edit';
-                // Disable edit action & enable save action
+                // Disable edit action & enable save, cancel & delete actions
                 actions.edit.active = false;
+
                 actions.save.active = true;
+                actions.cancel.active = true;
+                actions.cancel.handler = true;
+                actions.cancel.prepend = <Text key={ 'prepend-action-cancel' } tag="span" text=" or "/>;
+                actions.delete.active = true;
             }
 
             product = _.merge(
                 _.clone(product),
                 {
                     onClick: this.onClickProduct,
-                    actions: [ actions.edit, actions.save, actions.delete ]
+                    actions: [ actions.edit, actions.save, actions.cancel, actions.delete ]
                 }
             );
 
