@@ -63,8 +63,6 @@ module.exports = React.createClass({
     },
 
     onHandleInputForProduct (product, e, value, field) {
-        console.info('onHandleInputForProduct', arguments);
-
         const fieldName = field.replace('product-', '');
         product[fieldName] = value;
 
@@ -97,11 +95,9 @@ module.exports = React.createClass({
 
     _renderAddURL () {
         // Add a default value to the form field
-        const props = {
-            inputDefaultValue: this.state.addURL
-        };
+        const value = !!this.state.productToAdd ? '' : this.state.addURL;
 
-        return <AddURL key="add-url" onHandleInput={ this.onHandleInputForAddURL } onAdd={ this.onAddURL } { ...props } />
+        return <AddURL key="add-url" onHandleInput={ this.onHandleInputForAddURL } onAdd={ this.onAddURL } inputValue={ value } />
     },
 
     _renderAddProduct () {

@@ -18,7 +18,7 @@ module.exports = React.createClass({
     displayName: 'AddURL',
 
     propTypes: {
-        inputDefaultValue: React.PropTypes.string,
+        inputValue: React.PropTypes.string,
         onAdd: React.PropTypes.func,
         onHandleInput: React.PropTypes.func
     },
@@ -41,8 +41,7 @@ module.exports = React.createClass({
                     /*label="Add an Product"*/
                     placeholder="Paste your URL here"
                     labelClassName={ labelClasses }
-                    value={ this.props.url }
-                    defaultValue={ this.props.inputDefaultValue }
+                    value={ this.props.inputValue }
                     onChange={ this.props.onHandleInput }
                 />
                 <Button
