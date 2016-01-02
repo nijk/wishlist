@@ -15,7 +15,8 @@ let store = {
     fetching: false,
     updating: false,
     productToAdd: undefined,
-    products: []
+    products: [],
+    previousProductCount: 0
 };
 
 const setProduct = (product) => {
@@ -174,8 +175,25 @@ module.exports = Fluxxor.createStore({
         return store.productToAdd;
     },
 
-    getProductCount () {
+    productCount () {
         return store.products.length;
+    },
+
+    canFetchMore () {
+        let moreToFetch = false;
+
+        // Ensure that we don't fetch more if currently fetching or before the first fetch has happened
+        if (this.isFetching() || this.productCount() === 0) {
+            return false;
+        }
+
+        // Ensure there are more products to fetch
+        if (this.productCount() !== store.previousProductCount) {
+            store.previousProductCount = this.productCount();
+            moreToFetch = true;
+        }
+
+        return !(this.productCount() % 10) && moreToFetch;
     },
 
     isFetching () {

@@ -42,7 +42,8 @@ module.exports = React.createClass({
             started: core.store('Core').hasStarted(),
             productToAdd: productsStore.getProductToAdd(),
             products: productsStore.getProducts(),
-            productCount: productsStore.getProductCount(),
+            productCount: productsStore.productCount(),
+            canFetchMoreProducts: productsStore.canFetchMore(),
             isEditingProduct: productsStore.isEditing,
             isUpdatingProduct: productsStore.isUpdating(),
             isFetchingProducts: productsStore.isFetching(),
@@ -171,15 +172,8 @@ module.exports = React.createClass({
         );
     },
 
-    canLoadMore () {
-        return this.state.productCount > 0
-            && !this.state.isFetchingProducts
-            && !(this.state.productCount % 10);
-    },
-
     loadMore (isVisible) {
-
-        if ( isVisible && this.canLoadMore() ) {
+        if ( isVisible && this.state.canFetchMoreProducts ) {
             this.getProducts();
         }
     },
@@ -195,7 +189,7 @@ module.exports = React.createClass({
                 { this._renderAddURL() }
                 { (this.state.productToAdd) ? this._renderAddProduct() : null }
                 { (_.size(this.state.products) > 0) ? this._renderWishlist() : null }
-                { this.canLoadMore() ? this._renderFooter() : null }
+                { this.state.canFetchMoreProducts ? this._renderFooter() : null }
                 <div className={ classnames(overlayClasses) }></div>
             </div>
         );
