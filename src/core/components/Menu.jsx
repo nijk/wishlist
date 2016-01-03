@@ -7,9 +7,10 @@
 'use strict';
 
 const _ = require('lodash');
-const classnames = require('classnames');
 const React = require('react');
 const { Link } = require('react-router');
+const proptypes = require('core/proptypes');
+const classnames = require('classnames');
 
 // Components
 const List = require('./List');
@@ -31,7 +32,7 @@ module.exports = React.createClass({
                     title: React.PropTypes.string,
                     url: React.PropTypes.string.isRequired
                 }),
-                classes: React.PropTypes.objectOf(React.PropTypes.bool)
+                classes: proptypes.classes
             })
         )
     },

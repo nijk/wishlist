@@ -7,8 +7,9 @@
 'use strict';
 
 const _ = require('lodash');
-const classnames = require('classnames');
 const React = require('react');
+const proptypes = require('core/proptypes');
+const classnames = require('classnames');
 
 /* Styles */
 //require('style/list-item');
@@ -18,7 +19,7 @@ const List = React.createClass({
     displayName: 'List',
 
     propTypes: {
-        classes: React.PropTypes.objectOf(React.PropTypes.string),
+        classes: proptypes.classes,
         type: React.PropTypes.oneOf(['ul', 'ol', 'dl']),
         items: React.PropTypes.arrayOf(
             React.PropTypes.oneOfType([
@@ -30,7 +31,7 @@ const List = React.createClass({
                         url: React.PropTypes.string.isRequired,
                         onClick: React.PropTypes.func
                     }),
-                    classes: React.PropTypes.objectOf(React.PropTypes.bool)
+                    classes: proptypes.classes
                 })
             ])
         )

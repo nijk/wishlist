@@ -6,9 +6,13 @@
 
 'use strict';
 
+// Dependencies
 const _ = require('lodash');
 const core = require('core/Core');
 const React = require('react');
+const proptypes = require('core/proptypes');
+
+// Components
 const Button = require('./Button');
 const Text = require('./Text');
 const Input = require('./Input');
@@ -37,7 +41,7 @@ const Product = React.createClass({
             actions: React.PropTypes.arrayOf(
                 React.PropTypes.shape({
                     active: React.PropTypes.bool.isRequired,
-                    classes: React.PropTypes.objectOf(React.PropTypes.bool),
+                    classes: proptypes.classes,
                     type: React.PropTypes.oneOf(['edit', 'save', 'cancel', 'delete']),
                     text: React.PropTypes.string.isRequired,
                     onClick: React.PropTypes.func

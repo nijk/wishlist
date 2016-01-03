@@ -9,12 +9,8 @@
 const _ = require('lodash');
 const React = require('react');
 const ReactDOM = require('react-dom');
+const proptypes = require('core/proptypes');
 const classnames = require('classnames');
-
-const classNameProps = React.PropTypes.oneOfType([
-    React.PropTypes.objectOf(React.PropTypes.bool),
-    React.PropTypes.string
-]);
 
 /**
  * @class Input
@@ -38,8 +34,8 @@ module.exports = React.createClass({
             React.PropTypes.number
         ]),
         classes: React.PropTypes.shape({
-            label: classNameProps,
-            input: classNameProps
+            label: proptypes.classes,
+            input: proptypes.classes
         }),
         onChange: React.PropTypes.func
     },
