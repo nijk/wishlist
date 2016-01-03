@@ -10,7 +10,6 @@ const _ = require('lodash');
 const MongoDB = require('mongodb');
 const MongoURL = 'mongodb://localhost:27017/';
 const Promise = require('native-promise-only');
-const assert = require('assert');
 
 /**
  * Get the name of the DB based on the user/resource combination
@@ -23,20 +22,51 @@ const getDBName = ({ user, resource }) => `${user}-${resource}`;
  * Connect using MongoClient
  * @param dbName
  */
-const connectDB = ({ user, resource }) => {
-    const dbName = getDBName({ user, resource });
+const connectDB = ({ dbName = null, user = null, resource = null }) => {
+    if (null === dbName && user && resource) {
+        dbName = getDBName({ user, resource });
+    }
 
     return new Promise((resolve, reject) => {
-        MongoDB.MongoClient.connect(MongoURL + dbName, (err, db) => {
-            if (err) return reject(err);
-            resolve(db);
-        })
+        if (!dbName) {
+            return reject(new Error(`Database: ${dbName} not found. User: ${user}. Resource ${resource}`));
+        } else {
+            MongoDB.MongoClient.connect(MongoURL + dbName, (err, db) => {
+                if (err) return reject(err);
+                resolve(db);
+            });
+        }
     });
 };
 
 module.exports = {
-    createCollection: ({ user, resource, collection }) => new Promise((resolve, reject) => {
-        connectDB({ user, resource })
+    authenticateUser: ({ email, password }) => new Promise((resolve, reject) => {
+
+        console.info('DB:authenticateUser', email, password);
+
+        connectDB({ dbName: 'wishlist' })
+            .then((db) => {
+                db.collection('users')
+                    .find({ email })
+                    .limit(1)
+                    .toArray()
+                    .then((user) => {
+                        user = user[0];
+                        db.close();
+                        resolve(user);
+                    })
+                    .catch((err) => {
+                        db.close();
+                        return reject({ msg: 'DB:authenticateUser error!', err: err });
+                    });
+            })
+            .catch((err) => {
+                db.close();
+                return reject({ msg: 'DB:authenticateUser error!', err: err });
+            });
+    }),
+    createCollection: ({ dbName = null, user, resource, collection }) => new Promise((resolve, reject) => {
+        connectDB({ dbName, user, resource })
             .then((db) => {
                 db.createCollection(collection)
                     .then(() => {
@@ -53,14 +83,18 @@ module.exports = {
                 return reject({ msg: 'DB:createCollection error!', err: err });
             });
     }),
-    createDocument: ({ user, resource, collection, doc }) => new Promise((resolve, reject) => {
-        connectDB({ user, resource })
+    createDocument: ({ dbName = null, user, resource, collection, doc }) => new Promise((resolve, reject) => {
+        connectDB({ dbName, user, resource })
             .then((db) => {
                 db.collection(collection)
                     .insertOne(doc)
                     .then((result) => {
                         db.close();
                         resolve(result);
+                    })
+                    .catch((err) => {
+                        db.close();
+                        return reject({ msg: 'DB:createDocument error!', err: err });
                     });
             })
             .catch((err) => {
@@ -68,8 +102,8 @@ module.exports = {
                 return reject({ msg: 'DB:createDocument error!', err: err });
             });
     }),
-    updateDocument: ({ user, resource, collection, doc }) => new Promise((resolve, reject) => {
-        connectDB({ user, resource })
+    updateDocument: ({ dbName = null, user, resource, collection, doc }) => new Promise((resolve, reject) => {
+        connectDB({ dbName, user, resource })
             .then((db) => {
                 db.collection(collection)
                     .update({ _id: MongoDB.ObjectId(doc._id) }, _.omit(doc, '_id'))
@@ -87,8 +121,8 @@ module.exports = {
                 return reject({ msg: 'DB:updateDocument error!', err: err });
             });
     }),
-    removeDocument: ({ user, resource, collection, id }) => new Promise((resolve, reject) => {
-        connectDB({ user, resource })
+    removeDocument: ({ dbName = null, user, resource, collection, id }) => new Promise((resolve, reject) => {
+        connectDB({ dbName, user, resource })
             .then((db) => {
                 db.collection(collection)
                     .remove({ _id: MongoDB.ObjectId(id) }, 1)
@@ -106,8 +140,8 @@ module.exports = {
                 return reject({ msg: 'DB:removeDocument error!', err: err });
             });
     }),
-    retrieveCollections: ({ user, resource, page, limit }) => new Promise((resolve, reject) => {
-        connectDB({ user, resource })
+    retrieveCollections: ({ dbName = null, user, resource, page, limit }) => new Promise((resolve, reject) => {
+        connectDB({ dbName, user, resource })
             .then((db) => db.listCollections({ name: { $not: /^system.*/ } }).toArray()
             .then((collections) => {
                 db.close();
@@ -118,11 +152,11 @@ module.exports = {
                 return reject({ msg: 'DB:retrieveCollections error!', err });
             });
     }),
-    retrieveDocuments: ({ user, resource, collection, page, limit }) => new Promise((resolve, reject) => {
-        connectDB({ user, resource })
+    retrieveDocuments: ({ dbName = null, user, resource, collection, find = {}, page = 1, limit = 1 }) => new Promise((resolve, reject) => {
+        connectDB({ dbName, user, resource })
             .then((db) => {
                 db.collection(collection)
-                    .find({})
+                    .find(find)
                     .sort({_id: -1})
                     .skip((page -1) * limit)
                     .limit(limit)

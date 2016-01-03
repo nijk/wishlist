@@ -84,6 +84,7 @@
     "keymirror": "^0.1.1",
     "mongodb": "^2.0.48",
     "native-promise-only": "^0.8.1",
+    "node-uuid": "^1.4.7",
     "open-graph-scraper": "^1.0.1",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",

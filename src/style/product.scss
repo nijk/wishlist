@@ -1,10 +1,6 @@
 @import 'variables';
 @import '../../node_modules/skeleton-sass/skeleton/themes/fresh/_base.scss';
 
-.wishlist-products {
-
-}
-
 .product {
     position: relative;
     display: flex;
@@ -44,34 +40,6 @@
 
     p {
         margin: 0;
-    }
-}
-
-
-button {
-    &.button__primary {
-        @extend .button-primary;
-        margin-right: 1rem;
-    }
-
-    &.button__delete {
-        @extend .button-primary;
-        margin-left: auto;
-        background-color: $danger;
-        border-color: $danger;
-
-        &:hover,
-        &:focus {
-            background-color: darken($danger, 5%);
-            border-color: darken($danger, 5%);
-        }
-    }
-
-    &.button__link {
-        padding: 0;
-        border: 0 none;
-        color: $link;
-        text-decoration: underline;
     }
 }
 

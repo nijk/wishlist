@@ -17,7 +17,10 @@ module.exports = React.createClass({
         text: React.PropTypes.string.isRequired,
         prependElement: React.PropTypes.element,
         appendElement: React.PropTypes.element,
-        className: React.PropTypes.objectOf(React.PropTypes.bool),
+        className: React.PropTypes.oneOfType([
+            React.PropTypes.objectOf(React.PropTypes.bool),
+            React.PropTypes.string
+        ]),
         onClick: React.PropTypes.func.isRequired
     },
 

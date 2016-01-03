@@ -138,6 +138,16 @@ const actions = {
             .then(({ body }) => {
                 eventFactory.bind(this)(event, eventTypes.SUCCESS, body);
             }, errorCallback);
+    },
+
+    userLogin ({ email, password }) {
+        const event = events.USER_LOGIN;
+        this.dispatch(event);
+
+        API.userLogin({ email, password })
+            .then(({ body }) => {
+                eventFactory.bind(this)(event, eventTypes.SUCCESS, body);
+            }, errorCallback);
     }
 };
 

@@ -10,6 +10,7 @@ module.exports = {
             token: '/api/token',
             login: '/api/login'
         },
+        user: '/api/user',
         product: '/api/product/:url',
         collection: '/api/:resource/:collection?/:id?'
     }

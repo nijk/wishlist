@@ -22,10 +22,11 @@ const routes = require('../../../common/enums.routes');
 const AppContainer = require('./AppContainer');
 const Wishlists = require('./Wishlists');
 const Wishlist = require('./Wishlist');
+const Login = require('./Login');
 
 /* Styles */
 require('skeleton-sass');
-require('../../style/media');
+require('../../style/app');
 /* ------ */
 
 const createElement = (Component, props) => {
@@ -41,7 +42,7 @@ module.exports = {
                 <Route path={ routes.home } component={ AppContainer }>
                     <Route path={ routes.wishlists } component={ Wishlists }/>
                     <Route path={ routes.wishlist } component={ Wishlist }/>
-                    <Route path={ routes.user }/>
+                    <Route path={ routes.user } component={ Login }/>
                 </Route>
             </Router>
         ), document.getElementById('app-container'));

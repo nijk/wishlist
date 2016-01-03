@@ -7,19 +7,20 @@
 'use strict';
 
 const _ = require('lodash');
-const DB = require('./db');
 const csrf = require('csurf')();
 const ogScraper = require('open-graph-scraper');
+const passport = require('passport');
 // const ineed = require('ineed');
-// const auth = require('./auth');
+
+const DB = require('./db');
+const auth = require('./auth');
 const transform = require('../common/transforms');
 const { resources, routes, queryLimit } = require('../common/enums.api.js');
 
 // @todo: log errors server-side
 function errorHandler (err, errCode, msg, res) {
     const errName = 'API Error';
-    const errResponse = { msg: `${errName}: ${msg}`, status: errCode, err };
-    // console.warn(errName, errResponse);
+    const errResponse = { msg: `${errName}: ${msg}`, status: errCode, error: err.message };
     res.status(errCode);
     res.json(errResponse);
 }
@@ -38,7 +39,6 @@ function validator (req, res, next) {
     if (resource && !_.includes(resources, resource)) {
         return errorHandler({}, 400, 'Invalid resource', res);
     }
-
     next();
 }
 
@@ -53,6 +53,29 @@ function getUserObject (req, res, id) {
 }
 
 module.exports = (app) => {
+    app.post(routes.auth.login, csrf, passport.authenticate('local'), (req, res) => {
+        // If this function gets called, authentication was successful.
+        res.json({ success: true });
+    });
+
+    /**
+     *  API: POST User
+     *  Create new user accounts
+     */
+    app.post(routes.user, csrf, (req, res) => {
+        const { email, password } = req.body;
+        if (email && password) {
+            auth.createUser({ email, password })
+                .then((result) => res.json(result.ops))
+                .catch((err) => {
+                    console.info('createUser error', err);
+                    errorHandler(err, 409, 'Could not create user', res);
+                });
+        } else {
+            errorHandler({}, 400, 'Nothing to do: "email" and/or "password" parameters missing.', res);
+        }
+    });
+
     /**
      *  API: GET CSRF Token
      */
@@ -78,6 +101,8 @@ module.exports = (app) => {
     /**
      * API: POST Resource/Collection
      * Create Collection/Document
+     *
+     * @greedy
      */
     app.post(routes.collection, csrf, validator, (req, res) => {
         const user = 'nijk'; // @todo: User Authentication
@@ -107,6 +132,8 @@ module.exports = (app) => {
     /**
      * API: PUT Document
      * Update Document
+     *
+     * @greedy
      */
     app.put(routes.collection, csrf, validator, (req, res) => {
         const user = 'nijk'; // @todo: User Authentication
@@ -127,6 +154,8 @@ module.exports = (app) => {
     /**
      * API: DELETE Document
      * Remove Document
+     *
+     * @greedy
      */
     app.delete(routes.collection, /*csrf, */validator, (req, res) => {
         const user = 'nijk'; // @todo: User Authentication
@@ -146,6 +175,8 @@ module.exports = (app) => {
     /**
      * API: GET Resource/Collection
      * With paging
+     *
+     * @greedy
      */
     app.get(routes.collection, validator, (req, res) => {
         const user = 'nijk'; // @todo: User Authentication
@@ -169,10 +200,5 @@ module.exports = (app) => {
 
     /*app.get('/api/user/:id?', auth.authenticate('local'), function(req, res) {
         res.json(getUserObject(req, res, req.params.id));
-    });
-
-    app.post('/api/login', auth.authenticate('local'), function(req, res) {
-        // If this function gets called, authentication was successful.
-        res.json(getUserObject(req, res, req.user.username));
     });*/
 };

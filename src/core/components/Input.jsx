@@ -11,6 +11,11 @@ const React = require('react');
 const ReactDOM = require('react-dom');
 const classnames = require('classnames');
 
+const classNameProps = React.PropTypes.oneOfType([
+    React.PropTypes.objectOf(React.PropTypes.bool),
+    React.PropTypes.string
+]);
+
 /**
  * @class Input
  * @description Input form field, allowing for different type values
@@ -32,14 +37,10 @@ module.exports = React.createClass({
             React.PropTypes.string,
             React.PropTypes.number
         ]),
-        className: React.PropTypes.oneOfType([
-            React.PropTypes.objectOf(React.PropTypes.bool),
-            React.PropTypes.string
-        ]),
-        labelClassName: React.PropTypes.oneOfType([
-            React.PropTypes.objectOf(React.PropTypes.bool),
-            React.PropTypes.string
-        ]),
+        classes: React.PropTypes.shape({
+            label: classNameProps,
+            input: classNameProps
+        }),
         onChange: React.PropTypes.func
     },
 
@@ -94,13 +95,13 @@ module.exports = React.createClass({
      */
     render () {
         const input = {
-            classes: classnames(this.props.className),
+            classes: classnames(this.props.classes.input),
             id: this.props.name,
             tag: 'textarea' === this.props.type ? 'textarea' : 'input'
         };
 
         return (
-            <label key={ this.props.name } className={ classnames( this.props.labelClassName ) } htmlFor={ this.props.name }>
+            <label key={ this.props.name } className={ classnames( this.props.classes.label) } htmlFor={ this.props.name }>
                 { this.props.label }
                 <input.tag
                     { ...this.props }

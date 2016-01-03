@@ -23,8 +23,7 @@ const Text = require('../components/Text');
 const VisibilitySensor = require('react-visibility-sensor');
 
 /* Styles */
-require('style/wishlist');
-require('style/overlay');
+require('style/product');
 /* ------ */
 
 module.exports = React.createClass({
@@ -39,7 +38,6 @@ module.exports = React.createClass({
         const productsStore = core.store('Products');
 
         return {
-            started: core.store('Core').hasStarted(),
             productToAdd: productsStore.getProductToAdd(),
             products: productsStore.getProducts(),
             productCount: productsStore.productCount(),
@@ -112,7 +110,7 @@ module.exports = React.createClass({
         const product = _.merge(this.state.productToAdd, { actions: actions });
 
         return (
-            <div classNames="add-product">
+            <div className="add-product">
                 <Product
                     key="add-product"
                     params={ this.props.params }

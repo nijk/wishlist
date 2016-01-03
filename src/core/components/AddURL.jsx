@@ -24,8 +24,10 @@ module.exports = React.createClass({
     },
 
     render () {
-        const labelClasses = {
-            'add-url__label': true
+        const inputClasses = {
+            label: {
+                'add-url__label': true
+            }
         };
         const btnClasses = {
             'button--disabled': false,
@@ -40,7 +42,7 @@ module.exports = React.createClass({
                     type="text"
                     /*label="Add an Product"*/
                     placeholder="Paste your URL here"
-                    labelClassName={ labelClasses }
+                    classes={ inputClasses }
                     value={ this.props.inputValue }
                     onChange={ this.props.onHandleInput }
                 />
