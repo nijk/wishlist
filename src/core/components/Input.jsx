@@ -48,7 +48,10 @@ module.exports = React.createClass({
         return {
             type: 'text',
             label: '',
-            className: ''
+            classes: {
+                label: null,
+                input: null
+            }
         };
     },
 
@@ -78,15 +81,6 @@ module.exports = React.createClass({
             this.props.onChange(event, this.getValue(), this.props.name);
         }
     },
-
-    /**
-     * @private
-     * @function
-     * @returns {string} The input ref.
-     */
-    /*get refName() {
-        //return this.context.name + '-input'
-    },*/
 
     /**
      * @private

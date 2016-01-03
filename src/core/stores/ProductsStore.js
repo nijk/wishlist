@@ -58,8 +58,8 @@ const transformProduct = (url, product) => {
     return item;
 };
 
-const validateProduct = ({ url, title, images }) => {
-    return url && title && images && _.each(images, _.has('url'));
+const validateProduct = ({ /*url, */title, images }) => {
+    return /*url && */title && images && _.each(images, _.has('url'));
 };
 
 module.exports = Fluxxor.createStore({

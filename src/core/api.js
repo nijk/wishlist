@@ -155,11 +155,11 @@ const API = {
         const path = enums.routes.auth.login;
         const userLogin = (resolve, reject) => {
             xhr(path, 'post', { email, password })
-                .then((response) => {
-                    console.info('XHR: userLogin', url, response);
-                    done(response);
-                })
-                .catch((e) => console.warn('XHR: userLogin error', e));
+                .then(resolve)
+                .catch((e) => {
+                    console.warn('XHR: userLogin error', e);
+                    reject(e);
+                });
         };
         return preflightPOST(userLogin);
     }

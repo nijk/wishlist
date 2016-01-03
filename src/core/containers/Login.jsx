@@ -26,11 +26,10 @@ module.exports = React.createClass({
     displayName: 'Login',
 
     mixins: [
-        core.FluxMixin,
-        core.StoreWatchMixin('Products')
+        core.FluxMixin
     ],
 
-    getStateFromFlux () {
+    getInitialState () {
         return {
             userLogin: {
                 email: '',
@@ -39,19 +38,9 @@ module.exports = React.createClass({
         };
     },
 
-    onAddInput (field) {
-        // Only honour if stateFromFlux has an addURL value triggered by a change event on input field.
-        if (this.state.userLogin[field]) {
-            core.actions.addLoginInput( this.state.userLogin );
-        }
-    },
-
     onHandleInput (e, value, name) {
-        let userLogin = this.state.userLogin;
+        let userLogin = _.clone(this.state.userLogin);
         userLogin[name] = value;
-
-        console.info('onHandleInput', userLogin);
-
         this.setState({ userLogin });
     },
 
