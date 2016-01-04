@@ -6,9 +6,17 @@
 
 'use strict';
 
+// Config
+const config = {
+    port: 27017,
+    hostname: 'localhost',
+    defaultDB: 'wishlist'
+};
+config.url = `mongodb://${config.hostname}:${config.port}/`;
+
+// Dependencies
 const _ = require('lodash');
 const MongoDB = require('mongodb');
-const MongoURL = 'mongodb://localhost:27017/';
 const Promise = require('native-promise-only');
 
 /**
@@ -23,23 +31,24 @@ const getDBName = ({ user, resource }) => `${user}-${resource}`;
  * @param dbName
  */
 const connectDB = ({ dbName = null, user = null, resource = null }) => {
-    if (null === dbName && user && resource) {
+    if (!dbName && !user && !resource) {
+        dbName = config.defaultDB;
+    }
+
+    if (!dbName && user && resource) {
         dbName = getDBName({ user, resource });
     }
 
     return new Promise((resolve, reject) => {
-        if (!dbName) {
-            return reject(new Error(`Database: ${dbName} not found. User: ${user}. Resource ${resource}`));
-        } else {
-            MongoDB.MongoClient.connect(MongoURL + dbName, (err, db) => {
-                if (err) return reject(err);
-                resolve(db);
-            });
-        }
+        MongoDB.MongoClient.connect(config.url + dbName, (err, db) => {
+            if (err) return reject(err);
+            resolve(db);
+        });
     });
 };
 
 module.exports = {
+    _config: config,
     authenticateUser: ({ email, password }) => new Promise((resolve, reject) => {
 
         console.info('DB:authenticateUser', email, password);
@@ -155,6 +164,11 @@ module.exports = {
     retrieveDocuments: ({ dbName = null, user, resource, collection, find = {}, page = 1, limit = 1 }) => new Promise((resolve, reject) => {
         connectDB({ dbName, user, resource })
             .then((db) => {
+
+                if (find._id) {
+                    find._id = MongoDB.ObjectId(find._id);
+                }
+
                 db.collection(collection)
                     .find(find)
                     .sort({_id: -1})

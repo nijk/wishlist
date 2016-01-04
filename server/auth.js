@@ -68,8 +68,13 @@ const auth = {
 };
 
 // Passport Local setup
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user, done) => done(null, user));
+passport.serializeUser((user, done) => done(null, user._id));
+passport.deserializeUser((id, done) => {
+    const query = { dbName: 'wishlist', collection: 'users' };
+    DB.retrieveDocuments(_.merge(query, { find: { _id: id } }))
+        .then((user) => done(null, user || false))
+        .catch((e) => done(e, false));
+});
 
 passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
     DB.authenticateUser({ email, password })
