@@ -150,15 +150,25 @@ module.exports = {
             });
     }),
     retrieveCollections: ({ dbName = null, user, resource, page, limit }) => new Promise((resolve, reject) => {
+
+        console.info('retrieveCollections', dbName, user, resource);
+
         connectDB({ dbName, user, resource })
-            .then((db) => db.listCollections({ name: { $not: /^system.*/ } }).toArray()
-            .then((collections) => {
-                db.close();
-                resolve(collections);
-            }))
+            .then((db) => {
+                db.listCollections({ name: { $not: /^system.*/ } })
+                    .toArray()
+                    .then((collections) => {
+                        db.close();
+                        resolve(collections);
+                    })
+                    .catch((err) => {
+                        db.close();
+                        return reject(_.merge(err, { msg: 'DB:retrieveCollections error!' }));
+                    });
+            })
             .catch((err) => {
                 db.close();
-                return reject({ msg: 'DB:retrieveCollections error!', err });
+                return reject(_.merge(err, { msg: 'DB:retrieveCollections error!' }));
             });
     }),
     retrieveDocuments: ({ dbName = null, user, resource, collection, find = {}, page = 1, limit = 1 }) => new Promise((resolve, reject) => {
@@ -178,11 +188,15 @@ module.exports = {
                     .then((docs) => {
                         db.close();
                         resolve(docs);
+                    })
+                    .catch((err) => {
+                        db.close();
+                        return reject(_.merge(err, { msg: 'DB:retrieveDocuments error!' }));
                     });
             })
             .catch((err) => {
                 db.close();
-                return reject({ msg: 'DB:retrieveDocuments error!', err });
+                return reject(_.merge(err, { msg: 'DB:retrieveDocuments error!' }));
             });
     })
 };

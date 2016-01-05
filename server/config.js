@@ -56,7 +56,7 @@ module.exports = (app) => {
 
     /* Passport */
     app.use(passport.initialize());
-    app.use(passport.session());
+    //app.use(passport.session());
 
     /* Static Assets */
     app.use(serveStatic('dist', serveStaticOpts));
