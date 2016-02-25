@@ -31,6 +31,8 @@ const getDBName = ({ user, resource }) => `${user}-${resource}`;
  * @param dbName
  */
 const connectDB = ({ dbName = null, user = null, resource = null }) => {
+
+
     if (!dbName && !user && !resource) {
         dbName = config.defaultDB;
     }
@@ -39,7 +41,9 @@ const connectDB = ({ dbName = null, user = null, resource = null }) => {
         dbName = getDBName({ user, resource });
     }
 
+
     return new Promise((resolve, reject) => {
+        console.info('MongoDB.MongoClient.connect', config.url + dbName, dbName);
         MongoDB.MongoClient.connect(config.url + dbName, (err, db) => {
             if (err) return reject(err);
             resolve(db);
@@ -155,6 +159,9 @@ module.exports = {
 
         connectDB({ dbName, user, resource })
             .then((db) => {
+
+                console.info('listCollections', db);
+
                 db.listCollections({ name: { $not: /^system.*/ } })
                     .toArray()
                     .then((collections) => {
@@ -165,7 +172,7 @@ module.exports = {
                         db.close();
                         return reject(_.merge(err, { msg: 'DB:retrieveCollections error!' }));
                     });
-            })
+            }, (err) => console.log(err))
             .catch((err) => {
                 db.close();
                 return reject(_.merge(err, { msg: 'DB:retrieveCollections error!' }));

@@ -4,7 +4,7 @@
   "description": "A simple wishlist web app that allows users to create & share wishlists.",
   "main": "index.js",
   "scripts": {
-    "start": "mongod & nodemon build/backend.js",
+    "start": "mongod & nodemon --debug build/backend.js",
     "end": "pkill mongod",
     "dev-be": "webpack --config webpack.server.config.js --watch",
     "dev-fe": "webpack --config webpack.config.js --watch",

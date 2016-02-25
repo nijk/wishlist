@@ -7,6 +7,7 @@
 'use strict';
 
 const _ = require('lodash');
+const API = require('express').Router();
 const csrf = require('csurf')();
 const ogScraper = require('open-graph-scraper');
 const passport = require('passport');
@@ -17,22 +18,6 @@ const DB = require('./db');
 const auth = require('./auth');
 const transform = require('../common/transforms');
 const { resources, routes, queryLimit } = require('../common/enums.api.js');
-
-/**
- * ValidateUser middleware
- * Checks that the user session is valid
- */
-function validateUser (req, res, next) {
-    console.info('User', req.user, res.user, res);
-
-    if (!req.user || req.user.length > 1) {
-        return apiError({ message: 'Not authenticated' }, 401, 'Not authenticated', res);
-    }
-
-    req.userID = req.user[0]._id;
-
-    next();
-}
 
 /**
  * ValidateResource middleware
@@ -48,177 +33,182 @@ function validateResource (req, res, next) {
     next();
 }
 
-module.exports = (app) => {
+/**
+ * API: POST Auth/Login
+ * User login
+ */
+API.post(routes.auth.login,
+    passport.authenticate('local'),
+    auth.loginUser,
+    (req, res) => {
+        // Authentication successful.
+        res.json({ success: true });
+});
 
-    /**
-     * API: POST Auth/Login
-     * User login
-     */
-    app.post(routes.auth.login,
-        csrf,
-        passport.authenticate('local'),
-        auth.loginUser,
-        (req, res) => {
-            // Authentication successful.
-            res.json({ success: true });
-    });
-
-    /**
-     *  API: POST User
-     *  Create new user accounts
-     */
-    app.post(routes.user,
-        csrf,
-        (req, res) => {
-            const { email, password } = req.body;
-            if (email && password) {
-                auth.createUser({ email, password })
-                    .then((result) => res.json(result.ops))
-                    .catch((err) => {
-                        console.info('createUser error', err);
-                        apiError(err, 409, 'Could not create user', res);
-                    });
-            } else {
-                apiError({}, 400, 'Nothing to do: "email" and/or "password" parameters missing.', res);
-            }
+/**
+ *  API: POST User
+ *  Create new user accounts
+ */
+API.post(routes.user,
+    (req, res) => {
+        const { email, password } = req.body;
+        if (email && password) {
+            auth.createUser({ email, password })
+                .then((result) => res.json(result.ops))
+                .catch((err) => {
+                    console.info('createUser error', err);
+                    apiError(err, 409, 'Could not create user', res);
+                });
+        } else {
+            apiError({}, 400, 'Nothing to do: "email" and/or "password" parameters missing.', res);
         }
-    );
+    }
+);
 
-    /**
-     *  API: GET CSRF Token
-     */
-    app.get(routes.auth.token,
-        csrf,
-        (req, res) => res.json({ token: req.csrfToken() })
-    );
+/**
+ *  API: GET CSRF Token
+ */
+API.get(routes.auth.token,
+    csrf,
+    (req, res) => res.json({ token: req.csrfToken() })
+);
 
-    /**
-     * API: GET Product URL
-     * Fetch URL data: OG Tags/Scraped Data
-     */
-    app.get(routes.product,
-        auth.verifyUser,
-        (req, res) => {
-            const url = decodeURIComponent(req.params.url);
-            const resultDefaults = { opengraph: false, scraped: false };
+/**
+ * API: GET Product URL
+ * Fetch URL data: OG Tags/Scraped Data
+ */
+API.get(routes.product,
+    auth.verifyUser,
+    (req, res) => {
+        const url = decodeURIComponent(req.params.url);
+        const resultDefaults = { opengraph: false, scraped: false };
 
-            // Scrape from OpenGraph tags
-            ogScraper({ url, timeout: 5000 }, (err, result) => {
-                if (err) return apiError(err, 500, `Could not collect product resources from: ${url}. Reason: ${result.err}`, res);
-                res.json(_.extend(result, resultDefaults, { opengraph: true }));
-            });
+        // Scrape from OpenGraph tags
+        ogScraper({ url, timeout: 5000 }, (err, result) => {
+            if (err) return apiError(err, 500, `Could not collect product resources from: ${url}. Reason: ${result.err}`, res);
+            res.json(_.extend(result, resultDefaults, { opengraph: true }));
+        });
 
-            // @todo: Scrape for data if OG returns no useful results
+        // @todo: Scrape for data if OG returns no useful results
+    }
+);
+
+/**
+ * API: POST Resource/Collection
+ * Create Collection/Document
+ *
+ * @greedy
+ */
+API.post(routes.collection,
+    csrf,
+    validateResource,
+    auth.verifyUser,
+    (req, res) => {
+        const { resource, collection } = req.params;
+        const { item } = req.body;
+
+        if (collection && item) {
+            DB.createDocument({ user: req.userID, resource, collection, doc: item })
+                .then((result) => res.json(result.ops))
+                .catch((err) => apiError(err, 500, 'Could not create document', res));
+
+        } else if (item) {
+            DB.createCollection({ user: req.userID, resource, collection: item.name })
+                .then((name) => {
+                    const location = transform.route(routes.collection, { resource: resource, collection: name });
+                    res.status(201);
+                    res.set('Location', location);
+                    res.send();
+                })
+                .catch((err) => apiError(err, 500, 'Could not create collection', res));
+        } else {
+            apiError({}, 500, 'Nothing to do: "item" parameter missing.', res);
         }
-    );
+    }
+);
 
-    /**
-     * API: POST Resource/Collection
-     * Create Collection/Document
-     *
-     * @greedy
-     */
-    app.post(routes.collection,
-        csrf,
-        validateResource,
-        auth.verifyUser,
-        (req, res) => {
-            const { resource, collection } = req.params;
-            const { item } = req.body;
+/**
+ * API: PUT Document
+ * Update Document
+ *
+ * @greedy
+ */
+API.put(routes.collection,
+    validateResource,
+    auth.verifyUser,
+    csrf,
+    (req, res) => {
+        const { resource, collection } = req.params;
+        const { item } = req.body;
 
-            if (collection && item) {
-                DB.createDocument({ user: req.userID, resource, collection, doc: item })
-                    .then((result) => res.json(result.ops))
-                    .catch((err) => apiError(err, 500, 'Could not create document', res));
+        if (collection && item) {
+            DB.updateDocument({ user: req.userID, resource, collection, doc: item })
+                .then((result) => res.json({ result, item }))
+                .catch((err) => apiError(err, 500, 'Could not update document', res));
 
-            } else if (item) {
-                DB.createCollection({ user: req.userID, resource, collection: item.name })
-                    .then((name) => {
-                        const location = transform.route(routes.collection, { resource: resource, collection: name });
-                        res.status(201);
-                        res.set('Location', location);
-                        res.send();
-                    })
-                    .catch((err) => apiError(err, 500, 'Could not create collection', res));
-            } else {
-                apiError({}, 500, 'Nothing to do: "item" parameter missing.', res);
-            }
+        } else {
+            apiError({}, 409, 'Nothing to do: "collection" and/or "item" parameters missing.', res);
         }
-    );
+    }
+);
 
-    /**
-     * API: PUT Document
-     * Update Document
-     *
-     * @greedy
-     */
-    app.put(routes.collection,
-        csrf,
-        validateResource,
-        auth.verifyUser,
-        (req, res) => {
-            const { resource, collection } = req.params;
-            const { item } = req.body;
+/**
+ * API: DELETE Document
+ * Remove Document
+ *
+ * @greedy
+ */
+API.delete(routes.collection,
+    validateResource,
+    auth.verifyUser,
+    (req, res) => {
+        const { resource, collection, id } = req.params;
 
-            if (collection && item) {
-                DB.updateDocument({ user: req.userID, resource, collection, doc: item })
-                    .then((result) => res.json({ result, item }))
-                    .catch((err) => apiError(err, 500, 'Could not update document', res));
+        if (collection && id) {
+            DB.removeDocument({ user: req.userID, resource, collection, id })
+                .then((result) => res.json({ result }))
+                .catch((err) => apiError(err, 500, 'Could not remove document', res));
 
-            } else {
-                apiError({}, 409, 'Nothing to do: "collection" and/or "item" parameters missing.', res);
-            }
+        } else {
+            apiError({}, 409, 'Nothing to do: "collection" and/or "id" parameters missing.', res);
         }
-    );
+    }
+);
 
-    /**
-     * API: DELETE Document
-     * Remove Document
-     *
-     * @greedy
-     */
-    app.delete(routes.collection,
-        validateResource,
-        auth.verifyUser,
-        (req, res) => {
-            const { resource, collection, id } = req.params;
+/**
+ * API: GET Resource/Collection
+ * With paging
+ *
+ * @greedy
+ */
+API.get(routes.collection,
+    validateResource,
+    auth.verifyUser,
+    (req, res) => {
+        const { resource, collection } = req.params;
+        const userID = req.user.id;
 
-            if (collection && id) {
-                DB.removeDocument({ user: req.userID, resource, collection, id })
-                    .then((result) => res.json({ result }))
-                    .catch((err) => apiError(err, 500, 'Could not remove document', res));
+        console.info('Wishlists for User', userID);
 
-            } else {
-                apiError({}, 409, 'Nothing to do: "collection" and/or "id" parameters missing.', res);
-            }
+        if (!userID) apiError({}, 404, 'User ID missing', res);
+
+        //const dbName = userID + '-wishlist';
+
+        let { page, limit } = req.query;
+        page = parseInt(page || 1);
+        limit = parseInt(limit || queryLimit);
+
+        if (collection) {
+            DB.retrieveDocuments({ user: req.user.id, resource, collection, page, limit })
+                .then(res.json)
+                .catch((err) => apiError(err, 500, 'Could not retrieve documents', res));
+        } else {
+            DB.retrieveCollections({ dbName: 'nijk-wishlists', resource, page, limit })
+                .then(res.json)
+                .catch((err) => apiError(err, 500, 'Could not retrieve collections', res));
+
         }
-    );
+    }
+);
 
-    /**
-     * API: GET Resource/Collection
-     * With paging
-     *
-     * @greedy
-     */
-    app.get(routes.collection,
-        validateResource,
-        auth.verifyUser,
-        (req, res) => {
-            const { resource, collection } = req.params;
-            let { page, limit } = req.query;
-            page = parseInt(page || 1);
-            limit = parseInt(limit || queryLimit);
-
-            if (collection) {
-                DB.retrieveDocuments({ user: req.userID, resource, collection, page, limit })
-                    .then(res.json)
-                    .catch((err) => apiError(err, 500, 'Could not retrieve documents', res));
-            } else {
-                DB.retrieveCollections({ user: req.userID, resource, page, limit })
-                    .then(res.json)
-                    .catch((err) => apiError(err, 500, 'Could not retrieve collections', res));
-
-            }
-        }
-    );
-};
+module.exports = API;

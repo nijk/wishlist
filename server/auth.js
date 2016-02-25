@@ -7,6 +7,7 @@
 'use strict';
 
 const _ = require('lodash');
+const csrf = require('csurf')();
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const nJwt = require('njwt');
@@ -28,11 +29,16 @@ const setSigningKey = () => {
     return UUID.v4();
 };
 
+const createCSRFToken = (user) => {
+    return hash(user._id + Date.now(), user.salt)
+};
+
 const createUser = (username = null) => {
     if (!username) {
         return setUserSalt({});
     }
 };
+
 const setUserField = (user, { field, value, secure = false }) => {
     if (secure) {
         user[field] = hash(value, user.salt);
@@ -46,44 +52,85 @@ const setFields = (user, fields = []) => _.reduce(fields, setUserField, user);
 
 const signingKey = setSigningKey();
 
+const verifyCSRFToken = (req, res, done) => {
+    // Idempotent resources don't need CSRF protection
+    if ('GET' === req.method) done();
+
+    const csrfToken = new Cookies(req,res).get(auth._config.csrfName);
+
+    if (!csrfToken || req.jwtToken.csrfToken !== csrfToken) {
+        done(new Error('CSRF Token missing or invalid'));
+    }
+
+    done();
+};
+
 const auth = {
-    _config: { signingKey, jwtName: 'access_token' },
+    _config: {
+        signingKey,
+        jwtName: 'access_token',
+        csrfName: 'csrf_token'
+    },
 
     loginUser: (req, res, next) => {
         if (!req.user._id) {
             throw new Error('User not found');
         }
 
+        const csrfToken = 'csrfToken';
+        //const csrfToken = createCSRFToken(req.user);
+
         const jwt = nJwt.create({
             iss: "http://localhost:3000", // @todo: move this out to config
             sub: req.user._id,
-            scope: "self"
-        }, signingKey);
+            exp: (Date.now() / 1000) + (24 * 3600),
+            scope: "self",
+            csrfToken: csrfToken
+        }, auth._config.signingKey);
 
         new Cookies(req,res).set(auth._config.jwtName, jwt.compact(), {
             httpOnly: true,
             secure: false /*true */ // @todo: change for prod
         });
 
+        // This csrf cookie is intentionally set as insecure so that the browser will trigger SOP:
+        // see https://stormpath.com/blog/build-secure-user-interfaces-using-jwts/
+        new Cookies(req,res).set(auth._config.csrfName, csrfToken, {
+            httpOnly: false,
+            secure: false
+        });
+
         next();
     },
 
     verifyUser: (req, res, next) => {
-        const token = new Cookies(req,res).get(auth._config.jwtName);
+        req.jwtToken = new Cookies(req,res).get(auth._config.jwtName);
 
-        nJwt.verify(token, signingKey, (err, token) => {
+        nJwt.verify(req.jwtToken, auth._config.signingKey, (err, token) => {
             if (err) return apiError(err, 401, 'Not authenticated', res);
+
+            console.log('nJwt.verify', req.jwtToken, token);
 
             const query = { dbName: 'wishlist', collection: 'users' };
             DB.retrieveDocuments(_.merge(query, { find: { _id: token.body.sub } }))
                 .then((user) => {
-                    // Set the userID
-                    req.userID = user[0]._id;
-                    next();
-                })
-                .catch((e) => apiError(err, 401, 'Not authenticated', res));
-        });
 
+                    console.info('User', user);
+
+                    // Set the userID & CSRF salt
+                    const userMatch = user[0];
+                    req.user = { id: userMatch._id, salt: userMatch.salt };
+
+                    // @todo: Refresh the token with an updated expiry time
+
+                }, (err) => console.log(err))
+                .then(() => verifyCSRFToken(req, res, (err) => {
+                    if (err) return apiError(err, 401, 'CSRF Error', res);
+                    next();
+                }), (err) => console.log(err))
+                .catch((err) => apiError(err, 401, 'Not authenticated', res));
+
+        });
     },
 
     createUser: ({ email, password }) => new Promise((resolve, reject) => {
@@ -115,13 +162,17 @@ const auth = {
 };
 
 // Passport Local setup
-/*passport.serializeUser((user, done) => done(null, user._id));
+passport.serializeUser((user, done) => done(null, user._id));
 passport.deserializeUser((id, done) => {
     const query = { dbName: 'wishlist', collection: 'users' };
     DB.retrieveDocuments(_.merge(query, { find: { _id: id } }))
-        .then((user) => done(null, user || false))
+        .then((user) => {
+            var e = null;
+            if (!user) e = new Error('User not found');
+            done(e, user || false)
+        })
         .catch((e) => done(e, false));
-});*/
+});
 
 passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
     DB.authenticateUser({ email, password })

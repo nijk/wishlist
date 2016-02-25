@@ -22,7 +22,7 @@ const serveStatic = require('serve-static');
 const expressPromise = require('express-promise');
 
 
-
+const API = require('./api');
 const DB = require('./db');
 const routes = require('../common/enums.routes.js');
 
@@ -67,6 +67,9 @@ module.exports = (app) => {
             res.sendFile('dist/index.html', { root: '.'});
         });
     }
+
+    /* API */
+    app.use(API);
 
     /* Error Handling: middleware should be loaded after the loading the routes */
     if ('development' == app.get('env')) {

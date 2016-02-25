@@ -48,8 +48,10 @@ const xhr = (path, type = 'get', data = {}, query = {}) => new Promise((resolve,
         request.query(query);
     }
 
+    const csrfToken = 'csrfToken';
+
     if ('get' !== type && csrfToken) {
-        request.set('X-CSRF-TOKEN', csrfToken);
+        request.set('X-Requested-With', `XMLHttpRequest;${csrfToken}`);
     }
 
     request.set('Accept', 'application/json; charset=utf-8');
@@ -67,32 +69,7 @@ const xhr = (path, type = 'get', data = {}, query = {}) => new Promise((resolve,
     });
 });
 
-/**
- * Ensure POST/PUT requests fetch a CSRF token first if none exists
- * @param done
- * @returns Promise
- */
-const preflightPOST = (done) => {
-    if (!csrfToken) {
-        return new Promise((resolve, reject) => {
-            API.fetchCSRFToken().then(() => done(resolve, reject), reject);
-        });
-    }
-
-    return new Promise(done);
-};
-
 const API = {
-    fetchCSRFToken () {
-        return xhr(enums.routes.auth.token)
-            .then(({ body }) => {
-                csrfToken = body.token;
-                return csrfToken;
-            })
-            .catch((e) => {
-                console.warn('XHR: fetchCSRFToken error', e);
-            });
-    },
     fetchProduct (url, done) {
         const path = transform.route(enums.routes.product, { url: encodeURIComponent(url) });
         return xhr(path, 'get')
@@ -104,27 +81,25 @@ const API = {
     },
     addProduct (product, collection) {
         const path = transform.route(enums.routes.collection, { resource: 'wishlists', collection });
-        const addProduct = (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             xhr(path, 'post', { user, item: product })
                 .then(resolve)
                 .catch((e) => {
                     console.warn('XHR: addProduct error', e);
                     reject(e);
                 });
-        };
-        return preflightPOST(addProduct);
+        });
     },
     updateProduct (product, collection) {
         const path = transform.route(enums.routes.collection, { resource: 'wishlists', collection });
-        const updateProduct = (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             xhr(path, 'put', { user, item: product })
                 .then(resolve)
                 .catch((e) => {
                     console.warn('XHR: updateProduct error', e);
                     reject(e);
                 });
-        };
-        return preflightPOST(updateProduct);
+        });
     },
     deleteProduct (product, collection) {
         const path = transform.route(enums.routes.collection, {
@@ -153,15 +128,14 @@ const API = {
     },
     userLogin ({ email, password }) {
         const path = enums.routes.auth.login;
-        const userLogin = (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             xhr(path, 'post', { email, password })
                 .then(resolve)
                 .catch((e) => {
                     console.warn('XHR: userLogin error', e);
                     reject(e);
                 });
-        };
-        return preflightPOST(userLogin);
+        });
     }
 };
 
