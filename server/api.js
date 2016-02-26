@@ -13,7 +13,7 @@ const ogScraper = require('open-graph-scraper');
 const passport = require('passport');
 // const ineed = require('ineed');
 
-const { apiError } = require('./api-error');
+const { APIError } = require('./api-error');
 const DB = require('./db');
 const auth = require('./auth');
 const transform = require('../common/transforms');
@@ -28,11 +28,11 @@ function validateResourceAndCollection (req, res, next) {
     const { resource, collection } = req.params;
 
     if (!resource || !_.includes(resources, resource)) {
-        apiError({}, 400, 'Invalid resource', res);
+        return APIError({ code: 400, msg: 'Invalid resource' }, req, res);
     }
     
     if (!collection || !_.includes(collections, collection)) {
-        apiError({}, 404, 'Invalid collection', res);
+        return APIError({ code: 400, msg: 'Invalid collection' }, req, res);
     }
     next();
 }
@@ -59,22 +59,11 @@ API.post(routes.user,
         if (email && password) {
             auth.createUser({ email, password })
                 .then((result) => res.json(result.ops))
-                .catch((err) => {
-                    console.info('createUser error', err);
-                    apiError(err, 409, 'Could not create user', res);
-                });
+                .catch((err) => APIError({ code: 409, msg: 'Could not create user', erroriginError: err }, req, res));
         } else {
-            apiError({}, 400, 'Nothing to do: "email" and/or "password" parameters missing.', res);
+            APIError({ code: 409, msg: 'Nothing to do: "email" and/or "password" parameters missing.' }, req, res);
         }
     }
-);
-
-/**
- *  API: GET CSRF Token
- */
-API.get(routes.auth.token,
-    csrf,
-    (req, res) => res.json({ token: req.csrfToken() })
 );
 
 /**
@@ -89,7 +78,13 @@ API.get(routes.product,
 
         // Scrape from OpenGraph tags
         ogScraper({ url, timeout: 5000 }, (err, result) => {
-            if (err) return apiError(err, 500, `Could not collect product resources from: ${url}. Reason: ${result.err}`, res);
+            if (err) {
+                return APIError({
+                    err,
+                    code: 500,
+                    msg: `Could not collect product resources from: ${url}. Reason: ${result.err}`
+                }, req, res);
+            }
             res.json(_.extend(result, resultDefaults, { opengraph: true }));
         });
 
@@ -115,7 +110,7 @@ API.post(routes.collection,
         if (collection && item) {
             DB.createDocument({ user, resource, collection, doc: item })
                 .then((result) => res.json(result.ops))
-                .catch((err) => apiError(err, 500, 'Could not create document', res));
+                .catch((err) => APIError({ code: 500, msg: 'Could not create document', originError: err }, req, res));
 
         } else if (item) {
             DB.createCollection({ user, resource, collection: item.name })
@@ -125,9 +120,9 @@ API.post(routes.collection,
                     res.set('Location', location);
                     res.send();
                 })
-                .catch((err) => apiError(err, 500, 'Could not create collection', res));
+                .catch((err) => APIError({ code: 500, msg: 'Could not create collection', originError: err }, req, res));
         } else {
-            apiError({}, 500, 'Nothing to do: "item" parameter missing.', res);
+            APIError({ code: 409, msg: 'Nothing to do: "item" parameter missing' }, req, res);
         }
     }
 );
@@ -150,10 +145,10 @@ API.put(routes.collection,
         if (collection && item) {
             DB.updateDocument({ user, resource, collection, doc: item })
                 .then((result) => res.json({ result, item }))
-                .catch((err) => apiError(err, 500, 'Could not update document', res));
+                .catch((err) => APIError({ code: 500, msg: 'Could not update document', originError: err }, req, res));
 
         } else {
-            apiError({}, 409, 'Nothing to do: "collection" and/or "item" parameters missing.', res);
+            APIError({ code: 409, msg: 'Nothing to do: "collection" and/or "item" parameters missing' }, req, res);
         }
     }
 );
@@ -174,10 +169,10 @@ API.delete(routes.collection,
         if (collection && id) {
             DB.removeDocument({ user, resource, collection, id })
                 .then((result) => res.json({ result }))
-                .catch((err) => apiError(err, 500, 'Could not remove document', res));
+                .catch((err) => APIError({ code: 500, msg: 'Could not remove document', originError: err }, req, res));
 
         } else {
-            apiError({}, 409, 'Nothing to do: "collection" and/or "id" parameters missing.', res);
+            APIError({ code: 409, msg: 'Nothing to do: "collection" and/or "item" parameters missing' }, req, res);
         }
     }
 );
@@ -198,11 +193,11 @@ API.get(routes.collection,
         page = parseInt(page || 1);
         limit = parseInt(limit || queryLimit);
 
-        console.info('retrieve collection:', collection);
-
         DB.retrieveDocuments({ user, resource, collection, page, limit })
-            .then(res.json)
-            .catch((err) => apiError(err, 500, 'Could not retrieve documents', res));
+            .then((results) => {
+                res.json(results);
+            })
+            .catch((err) => APIError({ code: 500, msg: 'Could not retrieve documents', originError: err }, req, res));
     }
 );
 
