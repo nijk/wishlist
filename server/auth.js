@@ -7,7 +7,7 @@
 'use strict';
 
 const _ = require('lodash');
-const csrf = require('csurf')();
+//const csrf = require('csurf')();
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const nJwt = require('njwt');
@@ -74,7 +74,7 @@ const auth = {
 
     loginUser: (req, res, next) => {
         if (!req.user._id) {
-            throw new Error('User not found');
+            next(new Error('User not found'));
         }
 
         const csrfToken = 'csrfToken';
@@ -109,25 +109,21 @@ const auth = {
         nJwt.verify(req.jwtToken, auth._config.signingKey, (err, token) => {
             if (err) return apiError(err, 401, 'Not authenticated', res);
 
-            console.log('nJwt.verify', req.jwtToken, token);
+            //console.log('nJwt.verify', token);
 
-            const query = { dbName: 'wishlist', collection: 'users' };
-            DB.retrieveDocuments(_.merge(query, { find: { _id: token.body.sub } }))
+            DB.retrieveDocuments({ collection: 'users', find: { _id: token.body.sub } })
                 .then((user) => {
-
-                    console.info('User', user);
-
                     // Set the userID & CSRF salt
                     const userMatch = user[0];
-                    req.user = { id: userMatch._id, salt: userMatch.salt };
+                    req.user = { _id: userMatch._id.toString(), salt: userMatch.salt.toString() };
 
                     // @todo: Refresh the token with an updated expiry time
-
+                    next();
                 }, (err) => console.log(err))
-                .then(() => verifyCSRFToken(req, res, (err) => {
+                /*.then(() => verifyCSRFToken(req, res, (err) => {
                     if (err) return apiError(err, 401, 'CSRF Error', res);
                     next();
-                }), (err) => console.log(err))
+                }), (err) => console.log(err))*/
                 .catch((err) => apiError(err, 401, 'Not authenticated', res));
 
         });
@@ -163,16 +159,6 @@ const auth = {
 
 // Passport Local setup
 passport.serializeUser((user, done) => done(null, user._id));
-passport.deserializeUser((id, done) => {
-    const query = { dbName: 'wishlist', collection: 'users' };
-    DB.retrieveDocuments(_.merge(query, { find: { _id: id } }))
-        .then((user) => {
-            var e = null;
-            if (!user) e = new Error('User not found');
-            done(e, user || false)
-        })
-        .catch((e) => done(e, false));
-});
 
 passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
     DB.authenticateUser({ email, password })

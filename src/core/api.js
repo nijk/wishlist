@@ -80,7 +80,7 @@ const API = {
             .catch((e) => console.warn('XHR: fetchProduct error', e));
     },
     addProduct (product, collection) {
-        const path = transform.route(enums.routes.collection, { resource: 'wishlists', collection });
+        const path = transform.route(enums.routes.collection, { resource: '1.x', collection });
         return new Promise((resolve, reject) => {
             xhr(path, 'post', { user, item: product })
                 .then(resolve)
@@ -91,7 +91,7 @@ const API = {
         });
     },
     updateProduct (product, collection) {
-        const path = transform.route(enums.routes.collection, { resource: 'wishlists', collection });
+        const path = transform.route(enums.routes.collection, { resource: '1.x', collection });
         return new Promise((resolve, reject) => {
             xhr(path, 'put', { user, item: product })
                 .then(resolve)
@@ -103,7 +103,7 @@ const API = {
     },
     deleteProduct (product, collection) {
         const path = transform.route(enums.routes.collection, {
-            resource: 'wishlists',
+            resource: '1.x',
             collection,
             id: product._id
         });
@@ -117,7 +117,7 @@ const API = {
         );
     },
     fetchCollection ({ resource, collection, page, limit }) {
-        const path = transform.route(enums.routes.collection, { resource, collection });
+        const path = transform.route(enums.routes.collection, { resource: '1.x', collection });
         return new Promise((resolve, reject) => xhr(path, 'get', null, { page, limit })
             .then(resolve, reject)
             .catch((e) => {

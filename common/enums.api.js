@@ -2,7 +2,8 @@
 
 module.exports = {
     queryLimit: 10,
-    resources: ['wishlists'],
+    resources: ['1.x'],
+    collections: ['wishlists'],
     routes: {
         auth: {
             token: '/api/token',

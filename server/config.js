@@ -12,8 +12,8 @@ const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
 const cookieParser = require('cookie-parser');
 
-const expressSession = require('express-session');
-const MongoStore = require('connect-mongo')(expressSession);
+/*const expressSession = require('express-session');
+const MongoStore = require('connect-mongo')(expressSession);*/
 
 const errorHandler = require('errorhandler');
 const helmet = require('helmet');
@@ -43,14 +43,14 @@ module.exports = (app) => {
     app.use(methodOverride());
     app.use(cookieParser());
 
-    app.use(expressSession({
+    /*app.use(expressSession({
         secret: "notagoodsecret",
         resave: false,
         saveUninitialized: true,
         store: new MongoStore({
             url: DB._config.url + DB._config.defaultDB
         })
-    }));
+    }));*/
 
     app.use(expressPromise());
 
