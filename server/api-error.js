@@ -7,12 +7,33 @@
 'use strict';
 
 // @todo: log errors server-side
-module.exports = {
-    apiError (err, errCode, msg, res) {
-        const errName = 'API Error';
-        const errResponse = { msg: `${errName}: ${msg}`, status: errCode, error: err.message };
-        res.status(errCode);
-        res.json(errResponse);
-        res.end();
+
+const APIErrorHandler = (req, res) => {
+    const err = res.error;
+
+    if (err) {
+        const errName = err.name || 'API Error';
+        const errMsg = `${errName}: ${err.msg}`;
+
+        console.warn(errMsg, err.originError);
+
+        res.status(err.code);
+        res.json({
+            msg: errMsg,
+            status: err.code,
+            error: err.message
+        });
     }
+};
+
+const APIError = (err, req, res) => {
+    res.error = err;
+    res.error.code = err.code || 500;
+    res.error.msg = err.msg || 'unknown error';
+    APIErrorHandler(req, res);
+};
+
+module.exports = {
+    APIError,
+    APIErrorHandler
 };
