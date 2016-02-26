@@ -12,23 +12,16 @@ const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
 const cookieParser = require('cookie-parser');
 
-/*const expressSession = require('express-session');
-const MongoStore = require('connect-mongo')(expressSession);*/
-
 const errorHandler = require('errorhandler');
 const helmet = require('helmet');
 const passport = require('passport');
 const serveStatic = require('serve-static');
-const expressPromise = require('express-promise');
-
 
 const API = require('./api');
-const DB = require('./db');
+const { APIErrorHandler } = require('./api-error');
 const routes = require('../common/enums.routes.js');
 
-const serveStaticOpts = {
-    'index': ['index.html']
-};
+const serveStaticOpts = { index: ['index.html'] };
 
 module.exports = (app) => {
     app.set('port', process.env.PORT || 3000);
@@ -43,20 +36,8 @@ module.exports = (app) => {
     app.use(methodOverride());
     app.use(cookieParser());
 
-    /*app.use(expressSession({
-        secret: "notagoodsecret",
-        resave: false,
-        saveUninitialized: true,
-        store: new MongoStore({
-            url: DB._config.url + DB._config.defaultDB
-        })
-    }));*/
-
-    app.use(expressPromise());
-
     /* Passport */
     app.use(passport.initialize());
-    //app.use(passport.session());
 
     /* Static Assets */
     app.use(serveStatic('dist', serveStaticOpts));
@@ -69,11 +50,16 @@ module.exports = (app) => {
     }
 
     /* API */
+    app.use((req, res, next) => {
+        res.error = null;
+        next();
+    });
     app.use(API);
+    app.use(APIErrorHandler);
 
     /* Error Handling: middleware should be loaded after the loading the routes */
     if ('development' == app.get('env')) {
         app.use(logger('dev'));
-        app.use(errorHandler());
+        app.use(errorHandler);
     }
 };
