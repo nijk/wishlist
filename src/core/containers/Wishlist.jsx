@@ -82,7 +82,7 @@ module.exports = React.createClass({
         const params = {
             limit: ((this.state.productCount - remainder) + queryLimit)
         };
-        core.actions.getProducts(this.props.params.wishlist, params);
+        core.actions.getProducts(this.props.params.id, params);
     },
 
     componentDidMount () {

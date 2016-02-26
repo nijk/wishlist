@@ -116,8 +116,8 @@ const API = {
                 })
         );
     },
-    fetchCollection ({ resource, collection, page, limit }) {
-        const path = transform.route(enums.routes.collection, { resource: '1.x', collection });
+    fetchCollection ({ collection, id, page, limit }) {
+        const path = transform.route(enums.routes.collection, { resource: '1.x', collection, id });
         return new Promise((resolve, reject) => xhr(path, 'get', null, { page, limit })
             .then(resolve, reject)
             .catch((e) => {

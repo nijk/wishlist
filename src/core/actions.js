@@ -15,7 +15,7 @@ const { queryLimit } = require('../../common/enums.api');
 
 const errorCallback = (e, msg = 'Message missing') => {
     // @todo: throw user message
-    e.msg = msg;
+    e.msg = JSON.parse(e.response.text).msg;
     console.warn('Core actions: Promise error:', e.msg, e);
 };
 
@@ -77,12 +77,12 @@ const actions = {
                 errorCallback(e, 'addProduct failure');
             });
     },
-    getProducts (wishlist, { limit }) {
+    getProducts (wishlistID, { limit }) {
         const event = events.FETCH_PRODUCTS;
         this.dispatch(event);
 
         // Request a multiplied limit and page:1 for infinite scrolling/lazy loaded products
-        API.fetchCollection({ collection: wishlist, page: 1, limit })
+        API.fetchCollection({ collection: 'wishlists', id: wishlistID, page: 1, limit })
             .then(({ body }) => {
                 const payload = _.map(body, cleanseIncomingParams);
                 eventFactory.bind(this)(event, eventTypes.SUCCESS, payload);
