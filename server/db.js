@@ -27,19 +27,28 @@ const connectDB = (dbName) => {
     dbName = dbName || config.defaultDB;
 
     return new Promise((resolve, reject) => {
-        MongoDB.MongoClient.connect(config.url + dbName, (err, db) => {
+        MongoDB.MongoClient.connect(config.url + dbName, {}, (err, db) => {
             if (err) return reject(err);
             resolve(db);
         });
     });
 };
 
+const connectionErrorHandler = (err) => reject({ msg: 'DB:connection error', code: 500, err: err });
+const queryErrorHandler = (db, msg, code, err) => {
+    const result = {
+        msg: `DB: ${msg || 'query error'}`,
+        code: code || 500,
+        err: err || {}
+    };
+
+    db.close();
+    reject(result);
+};
+
 module.exports = {
     _config: config,
     authenticateUser: ({ email, password }) => new Promise((resolve, reject) => {
-
-        console.info('DB:authenticateUser', email, password);
-
         connectDB()
             .then((db) => {
                 db.collection('users')
@@ -50,16 +59,10 @@ module.exports = {
                         user = user[0];
                         db.close();
                         resolve(user);
-                    }, (err) => console.log(err))
-                    .catch((err) => {
-                        db.close();
-                        return reject({ msg: 'DB:authenticateUser error!', err: err });
-                    });
-            }, (err) => console.log(err))
-            .catch((err) => {
-                db.close();
-                return reject({ msg: 'DB:authenticateUser error!', err: err });
-            });
+                    })
+                    .catch(queryErrorHandler.bind(null, db, 'authenticateUser error'));
+            })
+            .catch(connectionErrorHandler);
     }),
     createCollection: ({ dbName = null, user, resource, collection }) => new Promise((resolve, reject) => {
         connectDB(dbName)
@@ -69,15 +72,9 @@ module.exports = {
                         db.close();
                         resolve(collection);
                     })
-                    .catch((err) => {
-                        db.close();
-                        return reject({ msg: 'DB:createCollection error!', err: err });
-                    });
+                    .catch(queryErrorHandler.bind(null, db, 'createCollection error'));
             })
-            .catch((err) => {
-                db.close();
-                return reject({ msg: 'DB:createCollection error!', err: err });
-            });
+            .catch(connectionErrorHandler);
     }),
     createDocument: ({ dbName = null, user, resource, collection, doc }) => new Promise((resolve, reject) => {
         connectDB(dbName)
@@ -88,15 +85,9 @@ module.exports = {
                         db.close();
                         resolve(result);
                     })
-                    .catch((err) => {
-                        db.close();
-                        return reject({ msg: 'DB:createDocument error!', err: err });
-                    });
+                    .catch(queryErrorHandler.bind(null, db, 'createDocument error'));
             })
-            .catch((err) => {
-                db.close();
-                return reject({ msg: 'DB:createDocument error!', err: err });
-            });
+            .catch(connectionErrorHandler);
     }),
     updateDocument: ({ dbName = null, user, resource, collection, doc }) => new Promise((resolve, reject) => {
         connectDB(dbName)
@@ -107,15 +98,9 @@ module.exports = {
                         db.close();
                         resolve(result);
                     })
-                    .catch((err) => {
-                        db.close();
-                        return reject({ msg: 'DB:updateDocument error!', err: err });
-                    });
+                    .catch(queryErrorHandler.bind(null, db, 'updateDocument error'));
             })
-            .catch((err) => {
-                db.close();
-                return reject({ msg: 'DB:updateDocument error!', err: err });
-            });
+            .catch(connectionErrorHandler);
     }),
     removeDocument: ({ dbName = null, user, resource, collection, id }) => new Promise((resolve, reject) => {
         connectDB(dbName)
@@ -126,50 +111,16 @@ module.exports = {
                         db.close();
                         resolve(result);
                     })
-                    .catch((err) => {
-                        db.close();
-                        return reject({ msg: 'DB:removeDocument error!', err: err });
-                    });
+                    .catch(queryErrorHandler.bind(null, db, 'removeDocument error'));
             })
-            .catch((err) => {
-                db.close();
-                return reject({ msg: 'DB:removeDocument error!', err: err });
-            });
+            .catch(connectionErrorHandler);
     }),
-    /*retrieveCollections: ({ dbName = null, user, resource, page, limit }) => new Promise((resolve, reject) => {
-
-        console.info('retrieveCollections', dbName, user, resource);
-
+    retrieveDocuments: ({ dbName, user, resource, collection, find = {}, page = 1, limit = 1 }) => new Promise((resolve, reject) => {
         connectDB(dbName)
             .then((db) => {
-
-                console.info('listCollections', db);
-
-                db.listCollections({ name: { $not: /^system.*!/ } })
-                    .toArray()
-                    .then((collections) => {
-                        db.close();
-                        resolve(collections);
-                    })
-                    .catch((err) => {
-                        db.close();
-                        return reject(_.merge(err, { msg: 'DB:retrieveCollections error!' }));
-                    });
-            }, (err) => console.log(err))
-            .catch((err) => {
-                db.close();
-                return reject(_.merge(err, { msg: 'DB:retrieveCollections error!' }));
-            });
-    }),*/
-    retrieveDocuments: ({ dbName = null, user, resource, collection, find = {}, page = 1, limit = 1 }) => new Promise((resolve, reject) => {
-        connectDB(dbName)
-            .then((db) => {
-
-                console.info('retrieveDocuments', user, collection);
-
                 if ('users' !== collection) {
-                    find = _.merge({ uid: user._id }, find);
-                    if (!user || !user._id) return reject({ msg: 'DB:retrieveDocuments missing user._id' });
+                    //find = _.merge({ uid: user._id }, find);
+                    if (!user || !user._id) return queryErrorHandler.bind(null, db, 'retrieveDocuments missing user._id');
                 }
 
                 if (find._id) {
@@ -184,19 +135,10 @@ module.exports = {
                     .toArray()
                     .then((docs) => {
                         db.close();
-
-                        console.info('Retrieved docs:', docs, 'from', find);
-
                         resolve(docs);
-                    }, (err) => console.log(err))
-                    .catch((err) => {
-                        db.close();
-                        return reject(_.merge(err, { msg: 'DB:retrieveDocuments error' }));
-                    });
-            }, (err) => console.log(err))
-            .catch((err) => {
-                db.close();
-                return reject(_.merge(err, { msg: 'DB:retrieveDocuments error' }));
-            });
+                    })
+                    .catch(queryErrorHandler.bind(null, db, 'retrieveDocuments error'));
+            })
+            .catch(connectionErrorHandler);
     })
 };
