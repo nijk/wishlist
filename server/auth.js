@@ -15,7 +15,7 @@ const Cookies = require('cookies');
 const crypto = require('crypto');
 const UUID = require('node-uuid');
 
-const { apiError } = require('./api-error');
+const { APIError } = require('./api-error');
 const DB = require('./db');
 
 const hash = (value, salt) => crypto.createHmac('sha256', salt).update(value).digest('hex');
@@ -26,7 +26,8 @@ const setUserSalt = (user) => {
 };
 
 const setSigningKey = () => {
-    return UUID.v4();
+    //return UUID.v4();
+    return '365bdede-549b-46aa-ac84-edc2cf8013d8'; // @todo: move this out to DB/config storage
 };
 
 const createCSRFToken = (user) => {
@@ -57,8 +58,10 @@ const verifyCSRFToken = (req, res, done) => {
     if ('GET' === req.method) done();
 
     const csrfToken = new Cookies(req,res).get(auth._config.csrfName);
+    const { body } = req.jwtNewToken;
 
-    if (!csrfToken || req.jwtToken.csrfToken !== csrfToken) {
+
+    if (!csrfToken || body.csrfToken !== csrfToken) {
         done(new Error('CSRF Token missing or invalid'));
     }
 
@@ -107,9 +110,9 @@ const auth = {
         req.jwtToken = new Cookies(req,res).get(auth._config.jwtName);
 
         nJwt.verify(req.jwtToken, auth._config.signingKey, (err, token) => {
-            if (err) return apiError(err, 401, 'Not authenticated', res);
+            if (err) return APIError({ code: 401, msg: 'Not authenticated', originError: err }, req, res);
 
-            //console.log('nJwt.verify', token);
+            req.jwtNewToken = token;
 
             DB.retrieveDocuments({ collection: 'users', find: { _id: token.body.sub } })
                 .then((user) => {
@@ -118,14 +121,12 @@ const auth = {
                     req.user = { _id: userMatch._id.toString(), salt: userMatch.salt.toString() };
 
                     // @todo: Refresh the token with an updated expiry time
+                })
+                .then(() => verifyCSRFToken(req, res, (err) => {
+                    if (err) return APIError({ code: 401, msg: 'CSRF error', originError: err }, req, res);
                     next();
-                }, (err) => console.log(err))
-                /*.then(() => verifyCSRFToken(req, res, (err) => {
-                    if (err) return apiError(err, 401, 'CSRF Error', res);
-                    next();
-                }), (err) => console.log(err))*/
-                .catch((err) => apiError(err, 401, 'Not authenticated', res));
-
+                }))
+                .catch((err) => APIError({ code: 401, msg: 'Not authenticated', originError: err }, req, res));
         });
     },
 
