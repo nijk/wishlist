@@ -13,10 +13,10 @@ const events = require('./events');
 const eventTypes = require('../../common/enums.events');
 const { queryLimit } = require('../../common/enums.api');
 
-const errorCallback = (e, msg = 'Message missing') => {
+const errorCallback = (e, message = 'Message missing') => {
     // @todo: throw user message
-    e.msg = JSON.parse(e.response.text).msg;
-    console.warn('Core actions: Promise error:', e.msg, e);
+    e.message = JSON.parse(e.response.text).message;
+    console.warn('Core actions: Promise error:', e.message, e);
 };
 
 const eventFactory = function (event, status, payload) {

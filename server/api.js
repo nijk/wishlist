@@ -11,6 +11,7 @@ const passport = require('passport');
 
 const auth = require('./auth');
 const handlers = require('./route-handlers');
+const { APIError } = require('./api-error');
 const { routes } = require('../common/enums.api.js');
 const { LOGIN, USERS, PRODUCTS, WISHLISTS } = routes;
 
@@ -23,7 +24,10 @@ const { LOGIN, USERS, PRODUCTS, WISHLISTS } = routes;
 API.post(LOGIN,
     passport.authenticate('local'),
     auth.loginUser,
-    (req, res) => res.json({ loggedin: true })
+    (req, res) => {
+        const { _id, name, email } = req.user;
+        res.json({ user: { _id, name, email } });
+    }
 );
 
 /**

@@ -25,11 +25,7 @@ module.exports = {
         // Scrape from OpenGraph tags
         OGScraper({ url, timeout: 5000 }, (err, result) => {
             if (err) {
-                return APIError({
-                    code: 500,
-                    msg: `Could not collect product resources from: ${url}. Reason: ${result.err}`,
-                    originError: err
-                }, req, res);
+                return new APIError(err, `Could not collect product data from: ${url}. Reason: ${result.err}`, 500);
             }
 
             res.json(_.extend(result, resultDefaults, { opengraph: true }));
@@ -52,7 +48,6 @@ module.exports = {
     },
 
     createDocument (resource, req, res) {
-        const { resource, collection } = req.params;
         const { collection, item } = req.body;
         const user = req.user;
 

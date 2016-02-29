@@ -57,7 +57,7 @@ module.exports = (app) => {
         next();
     });
     app.use(API);
-    app.use(APIErrorHandler);
+    //app.use(APIErrorHandler);
 
     /* Error Handling: middleware should be loaded after the loading the routes */
     if ('development' == app.get('env')) {

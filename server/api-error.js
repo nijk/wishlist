@@ -8,32 +8,17 @@
 
 // @todo: log errors server-side
 
-const APIErrorHandler = (req, res) => {
-    const err = res.error;
+const APIError = (err = {}, req, res) => {
+    err.name = `API Error`;
+    err.message = err.message || 'unknown error';
+    err.status = err.status || 500;
 
-    if (err) {
-        const errName = err.name || 'API Error';
-        const errMsg = `${errName}: ${err.msg}`;
+    console.warn(err.name, err.message, err.status, err);
 
-        console.warn(errMsg, err.originError);
-
-        res.status(err.code);
-        res.json({
-            msg: errMsg,
-            status: err.code,
-            error: err.message
-        });
-    }
+    res.status(err.status);
+    res.json(err);
 };
 
-const APIError = (err, req, res) => {
-    res.error = err;
-    res.error.code = err.code || 500;
-    res.error.msg = err.msg || 'unknown error';
-    APIErrorHandler(req, res);
-};
+APIError.prototype = Error.prototype;
 
-module.exports = {
-    APIError,
-    APIErrorHandler
-};
+module.exports = APIError;

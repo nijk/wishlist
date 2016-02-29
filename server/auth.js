@@ -77,7 +77,7 @@ const auth = {
 
     loginUser: (req, res, next) => {
         if (!req.user._id) {
-            next(new Error('User not found'));
+            next(new APIError(err, 'User not found', 404));
         }
 
         const csrfToken = 'csrfToken';
@@ -108,9 +108,14 @@ const auth = {
 
     verifyUser: (req, res, next) => {
         req.jwtToken = new Cookies(req,res).get(auth._config.jwtName);
+        if (!req.jwtToken) return new APIError({ message: 'User not logged in', status: 401 }, req, res);
 
         nJwt.verify(req.jwtToken, auth._config.signingKey, (err, token) => {
-            if (err) return APIError({ code: 401, msg: 'Not authenticated', originError: err }, req, res);
+            if (err) {
+                err.message = 'Not authenticated';
+                err.status = 401;
+                return new APIError(err, req, res);
+            }
 
             req.jwtNewToken = token;
 
@@ -126,7 +131,7 @@ const auth = {
                     if (err) return APIError({ code: 401, msg: 'CSRF error', originError: err }, req, res);
                     next();
                 }))
-                .catch((err) => APIError({ code: 401, msg: 'Not authenticated', originError: err }, req, res));
+                .catch((err) => APIError({ code: 401, msg: 'Cannot find user', originError: err }, req, res));
         });
     },
 
