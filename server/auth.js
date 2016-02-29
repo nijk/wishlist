@@ -114,7 +114,7 @@ const auth = {
 
             req.jwtNewToken = token;
 
-            DB.retrieveDocuments({ collection: 'users', find: { _id: token.body.sub } })
+            DB.retrieveDocuments({ resource: 'users', find: { _id: token.body.sub } })
                 .then((user) => {
                     // Set the userID & CSRF salt
                     const userMatch = user[0];
@@ -132,7 +132,7 @@ const auth = {
 
     createUser: ({ email, password }) => new Promise((resolve, reject) => {
         // @todo: Validate user's email address
-        const query = { dbName: 'wishlist', collection: 'users' };
+        const query = { dbName: 'wishlist', resource: 'users' };
         DB.retrieveDocuments(_.merge(query, { find: { email } }))
             .then((result) => {
                 if (_.some(result[0])) {

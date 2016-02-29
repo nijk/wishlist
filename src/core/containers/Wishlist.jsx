@@ -69,7 +69,7 @@ module.exports = React.createClass({
 
     onAddProduct (e) {
         e.preventDefault();
-        core.actions.addProduct( this.state.productToAdd, this.props.params.wishlist );
+        core.actions.addProduct( this.state.productToAdd, this.props.params.id );
     },
 
     onClickProduct (e) {
@@ -87,6 +87,8 @@ module.exports = React.createClass({
 
     componentDidMount () {
         this.getProducts();
+
+        console.info('Wishlist params', this.props.params);
 
         core.store('Products').on(events.MODIFY_PRODUCT_SUCCESS, () => setTimeout(this.getProducts));
     },

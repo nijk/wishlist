@@ -43,7 +43,7 @@ const queryErrorHandler = (db, msg, code, err) => {
     };
 
     db.close();
-    reject(result);
+    return reject(result);
 };
 
 module.exports = {
@@ -115,11 +115,14 @@ module.exports = {
             })
             .catch(connectionErrorHandler);
     }),
-    retrieveDocuments: ({ dbName, user, resource, collection, find = {}, page = 1, limit = 1 }) => new Promise((resolve, reject) => {
+    retrieveDocuments: ({ dbName, user, resource, find = {}, page = 1, limit = 1 }) => new Promise((resolve, reject) => {
         connectDB(dbName)
             .then((db) => {
-                if ('users' !== collection) {
-                    //find = _.merge({ uid: user._id }, find);
+
+                if (!resource) return queryErrorHandler.bind(null, db, 'retrieveDocuments missing resource');
+
+                if ('users' !== resource) {
+                    find = _.merge({ uid: user._id }, find);
                     if (!user || !user._id) return queryErrorHandler.bind(null, db, 'retrieveDocuments missing user._id');
                 }
 
@@ -127,7 +130,7 @@ module.exports = {
                     find._id = MongoDB.ObjectId(find._id);
                 }
 
-                db.collection(collection)
+                db.collection(resource)
                     .find(find)
                     .sort({_id: -1})
                     .skip((page -1) * limit)

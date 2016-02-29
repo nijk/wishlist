@@ -4,7 +4,7 @@ const _ = require('lodash');
 const superagent = require('superagent');
 const Promise = require('native-promise-only');
 const transform = require('../../common/transforms');
-const enums = require('../../common/enums.api.js');
+const { routes } = require('../../common/enums.api.js');
 
 let csrfToken;
 let user = 'nijk';
@@ -71,7 +71,7 @@ const xhr = (path, type = 'get', data = {}, query = {}) => new Promise((resolve,
 
 const API = {
     fetchProduct (url, done) {
-        const path = transform.route(enums.routes.product, { url: encodeURIComponent(url) });
+        const path = transform.route(routes.PRODUCTS, { url: encodeURIComponent(url) });
         return xhr(path, 'get')
             .then((response) => {
                 console.info('XHR: fetchProduct', url, response);
@@ -79,8 +79,8 @@ const API = {
             })
             .catch((e) => console.warn('XHR: fetchProduct error', e));
     },
-    addProduct (product, collection) {
-        const path = transform.route(enums.routes.collection, { resource: '1.x', collection });
+    addProduct (product, wishlistID) {
+        const path = transform.route(routes.WISHLISTS, { id: wishlistID });
         return new Promise((resolve, reject) => {
             xhr(path, 'post', { user, item: product })
                 .then(resolve)
@@ -91,7 +91,7 @@ const API = {
         });
     },
     updateProduct (product, collection) {
-        const path = transform.route(enums.routes.collection, { resource: '1.x', collection });
+        const path = transform.route(routes.WISHLISTS, { collection });
         return new Promise((resolve, reject) => {
             xhr(path, 'put', { user, item: product })
                 .then(resolve)
@@ -102,11 +102,7 @@ const API = {
         });
     },
     deleteProduct (product, collection) {
-        const path = transform.route(enums.routes.collection, {
-            resource: '1.x',
-            collection,
-            id: product._id
-        });
+        const path = transform.route(routes.WISHLISTS, { collection, id: product._id });
 
         return new Promise((resolve, reject) => xhr(path, 'delete', { user, item: product })
                 .then(resolve)
@@ -116,8 +112,8 @@ const API = {
                 })
         );
     },
-    fetchCollection ({ collection, id, page, limit }) {
-        const path = transform.route(enums.routes.collection, { resource: '1.x', collection, id });
+    fetchCollection ({ resource, id, page, limit }) {
+        const path = transform.route(routes.WISHLISTS, { resource, id });
         return new Promise((resolve, reject) => xhr(path, 'get', null, { page, limit })
             .then(resolve, reject)
             .catch((e) => {
@@ -127,7 +123,7 @@ const API = {
         );
     },
     userLogin ({ email, password }) {
-        const path = enums.routes.auth.login;
+        const path = routes.LOGIN;
         return new Promise((resolve, reject) => {
             xhr(path, 'post', { email, password })
                 .then(resolve)

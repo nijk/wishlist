@@ -17,6 +17,7 @@ const helmet = require('helmet');
 const passport = require('passport');
 const serveStatic = require('serve-static');
 
+const validator = require('./middleware/validator');
 const API = require('./api');
 const { APIErrorHandler } = require('./api-error');
 const routes = require('../common/enums.routes.js');
@@ -36,9 +37,6 @@ module.exports = (app) => {
     app.use(methodOverride());
     app.use(cookieParser());
 
-    /* Passport */
-    app.use(passport.initialize());
-
     /* Static Assets */
     app.use(serveStatic('dist', serveStaticOpts));
 
@@ -49,7 +47,11 @@ module.exports = (app) => {
         });
     }
 
+    /* Passport */
+    app.use(passport.initialize());
+
     /* API */
+    //app.use(validator);
     app.use((req, res, next) => {
         res.error = null;
         next();

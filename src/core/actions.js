@@ -62,12 +62,12 @@ const actions = {
         };
         API.fetchProduct(url, callback);
     },
-    addProduct (product, wishlist) {
+    addProduct (product, wishlistID) {
         const event = events.MODIFY_PRODUCT;
         const payload = { type: 'update', product };
         this.dispatch(event, payload);
 
-        API.addProduct(product, wishlist)
+        API.addProduct(product, wishlistID)
             .then(({ body }) => {
                 payload.product = body[0];
                 eventFactory.bind(this)(event, eventTypes.SUCCESS, payload);
@@ -82,7 +82,7 @@ const actions = {
         this.dispatch(event);
 
         // Request a multiplied limit and page:1 for infinite scrolling/lazy loaded products
-        API.fetchCollection({ collection: 'wishlists', id: wishlistID, page: 1, limit })
+        API.fetchCollection({ resource: 'wishlists', id: wishlistID, page: 1, limit })
             .then(({ body }) => {
                 const payload = _.map(body, cleanseIncomingParams);
                 eventFactory.bind(this)(event, eventTypes.SUCCESS, payload);
@@ -134,7 +134,7 @@ const actions = {
         const event = events.FETCH_WISHLISTS;
         this.dispatch(event);
 
-        API.fetchCollection({ collection: 'wishlists' })
+        API.fetchCollection({ resource: 'wishlists' })
             .then(({ body }) => {
                 eventFactory.bind(this)(event, eventTypes.SUCCESS, body);
             }, errorCallback);
