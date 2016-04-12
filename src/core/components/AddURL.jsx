@@ -1,5 +1,5 @@
 /**
- * wishlist - core.components/AddProduct
+ * wishlist - core.components/AddURL
  *
  * Created by nijk on 08/11/15.
  */

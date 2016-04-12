@@ -32,7 +32,7 @@ const unsetProductToAdd = () => {
     store.productToAdd = undefined;
 };
 
-const removeProductFromEditingMode = (product) => {
+const removeProductsFromEditingMode = (product) => {
     store.updating = false;
     _.remove(store.productsInEditMode, (i) => i === product.id && product.id);
 };
@@ -68,9 +68,9 @@ module.exports = Fluxxor.createStore({
             events.ADD_URL, this.onAddURL,
 
 
-            events.MODIFY_PRODUCT, this.onModifyProduct,
-            events.MODIFY_PRODUCT_SUCCESS, this.onModifyProductSuccess,
-            events.MODIFY_PRODUCT_FAILURE, this.onModifyProductFailure,
+            events.MODIFY_PRODUCTS, this.onModifyProduct,
+            events.MODIFY_PRODUCTS_SUCCESS, this.onModifyProductSuccess,
+            events.MODIFY_PRODUCTS_FAILURE, this.onModifyProductFailure,
 
             events.EDIT_PRODUCT, this.onEditProduct,
             events.EDIT_PRODUCT_CANCEL, this.onEditProductCancel,
@@ -115,28 +115,28 @@ module.exports = Fluxxor.createStore({
     },
 
     onEditProductCancel (product) {
-        removeProductFromEditingMode(product);
+        removeProductsFromEditingMode(product);
 
         this.emit( events.CHANGE );
     },
 
-    onModifyProduct ({ type, product }) {
+    onModifyProduct ({ type, products }) {
         store.updating = true;
         this.emit( events.CHANGE );
     },
 
-    onModifyProductSuccess ({ type, product }) {
+    onModifyProductSuccess ({ type, products }) {
         store.updating = false;
-        removeProductFromEditingMode(product);
-        this.emit( events.MODIFY_PRODUCT_SUCCESS, { type, product } );
+        removeProductsFromEditingMode(products);
+        this.emit( events.MODIFY_PRODUCTS_SUCCESS, { type, products } );
         this.emit( events.CHANGE );
     },
 
-    onModifyProductFailure ({ type, product }) {
+    onModifyProductFailure ({ type, products }) {
         store.updating = false;
-        removeProductFromEditingMode(product);
-        console.warn( events.MODIFY_PRODUCT_FAILURE, { type, product } );
-        this.emit( events.MODIFY_PRODUCT_FAILURE, { type, product } );
+        removeProductsFromEditingMode(products);
+        console.warn( events.MODIFY_PRODUCTS_FAILURE, { type, products } );
+        this.emit( events.MODIFY_PRODUCTS_FAILURE, { type, products } );
         this.emit( events.CHANGE );
     },
 

@@ -69,7 +69,7 @@ module.exports = React.createClass({
 
     onAddProduct (e) {
         e.preventDefault();
-        core.actions.addProduct( this.state.productToAdd, this.props.params.id );
+        core.actions.addProducts( [this.state.productToAdd], this.props.params.id );
     },
 
     onClickProduct (e) {
@@ -90,7 +90,7 @@ module.exports = React.createClass({
 
         console.info('Wishlist params', this.props.params);
 
-        core.store('Products').on(events.MODIFY_PRODUCT_SUCCESS, () => setTimeout(this.getProducts));
+        core.store('Products').on(events.MODIFY_PRODUCTS_SUCCESS, () => setTimeout(this.getProducts));
     },
 
     _renderAddURL () {

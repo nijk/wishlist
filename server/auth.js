@@ -76,9 +76,7 @@ const auth = {
     },
 
     loginUser: (req, res, next) => {
-        if (!req.user._id) {
-            next(new APIError(err, 'User not found', 404));
-        }
+        if (!req.user._id) return new APIError({ message: 'User not found', status: 404, originError: err }, req, res);
 
         const csrfToken = 'csrfToken';
         //const csrfToken = createCSRFToken(req.user);
@@ -108,13 +106,13 @@ const auth = {
 
     verifyUser: (req, res, next) => {
         req.jwtToken = new Cookies(req,res).get(auth._config.jwtName);
-        if (!req.jwtToken) return new APIError({ message: 'User not logged in', status: 401 }, req, res);
+        if (!req.jwtToken) {
+            return new APIError({ status: 401, message: 'User not logged in'}, req, res);
+        }
 
         nJwt.verify(req.jwtToken, auth._config.signingKey, (err, token) => {
             if (err) {
-                err.message = 'Not authenticated';
-                err.status = 401;
-                return new APIError(err, req, res);
+                return new APIError({ status: 401, message: 'Not authenticated', originError: err }, req, res);
             }
 
             req.jwtNewToken = token;
@@ -128,10 +126,10 @@ const auth = {
                     // @todo: Refresh the token with an updated expiry time
                 })
                 .then(() => verifyCSRFToken(req, res, (err) => {
-                    if (err) return APIError({ code: 401, msg: 'CSRF error', originError: err }, req, res);
+                    if (err) return new APIError({ status: 401, message: 'CSRF error', originError: err }, req, res);
                     next();
                 }))
-                .catch((err) => APIError({ code: 401, msg: 'Cannot find user', originError: err }, req, res));
+                .catch((err) => new APIError({ status: 401, message: 'Cannot find user', originError: err }, req, res));
         });
     },
 
@@ -142,7 +140,7 @@ const auth = {
             .then((result) => {
                 if (_.some(result[0])) {
                     console.info('User exists', result[0]);
-                    return reject(new Error(`User with email ${email} already exists`));
+                    return reject(new APIError({ status: 401, message: `User with email ${email} already exists`}));
                 }
 
                 let user = createUser();

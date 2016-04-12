@@ -62,19 +62,19 @@ const actions = {
         };
         API.fetchProduct(url, callback);
     },
-    addProduct (product, wishlistID) {
-        const event = events.MODIFY_PRODUCT;
-        const payload = { type: 'update', product };
+    addProducts (products, wishlistID) {
+        const event = events.MODIFY_PRODUCTS;
+        const payload = { type: 'update', products };
         this.dispatch(event, payload);
 
-        API.addProduct(product, wishlistID)
+        API.addProducts(products, wishlistID)
             .then(({ body }) => {
-                payload.product = body[0];
+                payload.products = body[0];
                 eventFactory.bind(this)(event, eventTypes.SUCCESS, payload);
             },
             (e) => {
                 eventFactory.bind(this)(event, eventTypes.FAILURE, payload);
-                errorCallback(e, 'addProduct failure');
+                errorCallback(e, 'addProducts failure');
             });
     },
     getProducts (wishlistID, { limit }) {
@@ -98,7 +98,7 @@ const actions = {
     },
 
     updateProduct (product, wishlist) {
-        const event = events.MODIFY_PRODUCT;
+        const event = events.MODIFY_PRODUCTS;
         const payload = { type: 'update', product };
         this.dispatch(event, payload);
 
@@ -115,7 +115,7 @@ const actions = {
     },
 
     deleteProduct (product, wishlist) {
-        const event = events.MODIFY_PRODUCT;
+        const event = events.MODIFY_PRODUCTS;
         const payload = { type: 'delete', product };
         this.dispatch(event, payload);
 

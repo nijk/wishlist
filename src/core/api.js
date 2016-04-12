@@ -79,13 +79,13 @@ const API = {
             })
             .catch((e) => console.warn('XHR: fetchProduct error', e));
     },
-    addProduct (product, wishlistID) {
-        const path = transform.route(routes.WISHLISTS, { id: wishlistID });
+    addProducts (products, wishlistID) {
+        const path = transform.route(routes.WISHLISTS_PRODUCTS, { resourceID: wishlistID, collection: 'products' });
         return new Promise((resolve, reject) => {
-            xhr(path, 'post', { user, item: product })
+            xhr(path, 'post', { user, items: products })
                 .then(resolve)
                 .catch((e) => {
-                    console.warn('XHR: addProduct error', e);
+                    console.warn('XHR: addProducts error', e);
                     reject(e);
                 });
         });
@@ -93,7 +93,7 @@ const API = {
     updateProduct (product, collection) {
         const path = transform.route(routes.WISHLISTS, { collection });
         return new Promise((resolve, reject) => {
-            xhr(path, 'put', { user, item: product })
+            xhr(path, 'put', { user, items: product })
                 .then(resolve)
                 .catch((e) => {
                     console.warn('XHR: updateProduct error', e);
@@ -104,7 +104,7 @@ const API = {
     deleteProduct (product, collection) {
         const path = transform.route(routes.WISHLISTS, { collection, id: product._id });
 
-        return new Promise((resolve, reject) => xhr(path, 'delete', { user, item: product })
+        return new Promise((resolve, reject) => xhr(path, 'delete', { user, items: product })
                 .then(resolve)
                 .catch((e) => {
                     console.warn('XHR: deleteProduct error', e);

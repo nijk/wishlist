@@ -89,11 +89,11 @@ module.exports = {
             })
             .catch(connectionErrorHandler);
     }),
-    updateDocument: ({ dbName = null, user, resource, collection, doc }) => new Promise((resolve, reject) => {
+    updateDocument: ({ dbName = null, user, resource, resourceID, collection, items }) => new Promise((resolve, reject) => {
         connectDB(dbName)
             .then((db) => {
-                db.collection(collection)
-                    .update({ _id: MongoDB.ObjectId(doc._id) }, _.omit(doc, '_id'))
+                db.collection(resource)
+                    .update({ _id: MongoDB.ObjectId(resourceID) }, { $set: { [collection]: items } })
                     .then((result) => {
                         db.close();
                         resolve(result);

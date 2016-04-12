@@ -7,6 +7,7 @@ module.exports = {
         LOGIN: '/api/login',
         USERS: '/api/users',
         PRODUCTS: '/api/products/:url',
-        WISHLISTS: '/api/wishlists/:id?'
+        WISHLISTS: '/api/wishlists/:id?',
+        WISHLISTS_PRODUCTS: '/api/wishlists/:resourceID/:collection/:collectionID?'
     }
 };

@@ -11,9 +11,9 @@ const passport = require('passport');
 
 const auth = require('./auth');
 const handlers = require('./route-handlers');
-const { APIError } = require('./api-error');
+const { APIErrorRouteHandler } = require('./api-error');
 const { routes } = require('../common/enums.api.js');
-const { LOGIN, USERS, PRODUCTS, WISHLISTS } = routes;
+const { LOGIN, USERS, PRODUCTS, WISHLISTS, WISHLISTS_PRODUCTS } = routes;
 
 /**
  * API: POST Login
@@ -64,12 +64,20 @@ API.get(WISHLISTS, auth.verifyUser, (req, res) => handlers.retrieveDocuments('wi
 API.post(WISHLISTS, auth.verifyUser, (req, res) => handlers.createDocument('wishlists', req, res));
 
 /**
+ * API: POST Wishlists Products (Products in a given Wishlist)
+ * Update Document
+ *
+ * @todo: test coverage
+ */
+API.post(WISHLISTS_PRODUCTS, auth.verifyUser, (req, res) => handlers.updateDocument('wishlists', req, res));
+
+/**
  * API: GET Product URL
  * Fetch URL data: OG Tags/Scraped Data
  *
  * @todo: test coverage
  */
-API.get(PRODUCTS, auth.verifyUser, handlers.fetchProductData);
+API.get(PRODUCTS, auth.verifyUser, handlers.fetchProductURL);
 
 /**
  * API: PUT Products
@@ -77,6 +85,6 @@ API.get(PRODUCTS, auth.verifyUser, handlers.fetchProductData);
  *
  * @todo: test coverage
  */
-API.put(PRODUCTS, (req, res) => handlers.updateDocument('products', req, res));
+//API.put(PRODUCTS, (req, res) => handlers.updateDocument('products', req, res));
 
 module.exports = API;
