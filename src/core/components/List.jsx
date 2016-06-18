@@ -10,6 +10,7 @@ const _ = require('lodash');
 const React = require('react');
 const proptypes = require('core/proptypes');
 const classnames = require('classnames');
+const { Link } = require('react-router');
 
 /* Styles */
 //require('style/list-item');
@@ -42,12 +43,7 @@ const List = React.createClass({
 
         if ( _.size(item.link) > 0 ) {
             text = (
-                <a onClick={ item.onClick }
-                    href={ item.link.url || '' }
-                    title={ item.link.text || text }
-                >
-                    { text }
-                </a>
+                <Link to={ item.link.url } title={ item.link.text || text } >{ text }</Link>
             );
         }
 

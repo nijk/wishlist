@@ -39,11 +39,17 @@ const Wishlists = React.createClass({
         core.actions.getWishlists();
     },
 
+    onClickItem (e) {
+        e.preventDefault();
+
+    },
+
     _renderWishlists () {
         const wishlists = _.map(this.state.wishlists, (item) => {
             return {
                 name: item.name,
                 link: {
+                    title: item.name,
                     url: transform.route(routes.wishlist, { id: item._id })
                 }
             }
