@@ -26,6 +26,7 @@ function nameError( errType ) {
  * @param path
  * @param type
  * @param data
+ * @param query
  */
 const xhr = (path, type = 'get', data = {}, query = {}) => new Promise((resolve, reject) => {
     let request;
@@ -90,8 +91,13 @@ const API = {
                 });
         });
     },
-    updateProduct (product, collection) {
-        const path = transform.route(routes.WISHLISTS, { collection });
+    updateProduct (product, wishlistID) {
+        const path = transform.route(routes.WISHLISTS_PRODUCTS, {
+            resourceID: wishlistID,
+            collection: 'products',
+            collectionID: product.id
+        });
+
         return new Promise((resolve, reject) => {
             xhr(path, 'put', { user, items: product })
                 .then(resolve)

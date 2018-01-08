@@ -1,13 +1,13 @@
 'use strict';
 
-module.exports = {
+export default {
     queryLimit: 10,
     resources: ['product', 'wishlists', 'users'],
     routes: {
         LOGIN: '/api/login',
         USERS: '/api/users',
-        PRODUCTS: '/api/products/:url',
+        LOOKUP: '/api/lookup/:url',
         WISHLISTS: '/api/wishlists/:id?',
-        WISHLISTS_PRODUCTS: '/api/wishlists/:resourceID/:collection/:collectionID?'
+        WISHLISTS_PRODUCT: '/api/wishlists/:resourceID/:collection/:collectionID?'
     }
 };

@@ -13,7 +13,7 @@ const auth = require('./auth');
 const handlers = require('./route-handlers');
 const { APIErrorRouteHandler } = require('./api-error');
 const { routes } = require('../common/enums.api.js');
-const { LOGIN, USERS, PRODUCTS, WISHLISTS, WISHLISTS_PRODUCTS } = routes;
+const { LOGIN, USERS, LOOKUP, WISHLISTS, WISHLISTS_PRODUCT } = routes;
 
 /**
  * API: POST Login
@@ -53,7 +53,10 @@ API.post(LOGIN,
  *
  * @todo: test coverage
  */
-API.get(WISHLISTS, auth.verifyUser, (req, res) => handlers.retrieveDocuments('wishlists', req, res));
+API.get(WISHLISTS,
+    auth.verifyUser,
+    (req, res) => handlers.retrieveDocuments('wishlists', req, res)
+);
 
 /**
  * API: POST Wishlists
@@ -61,23 +64,43 @@ API.get(WISHLISTS, auth.verifyUser, (req, res) => handlers.retrieveDocuments('wi
  *
  * @todo: test coverage
  */
-API.post(WISHLISTS, auth.verifyUser, (req, res) => handlers.createDocument('wishlists', req, res));
+API.post(WISHLISTS,
+    auth.verifyUser,
+    (req, res) => handlers.createDocument('wishlists', req, res)
+);
 
 /**
- * API: POST Wishlists Products (Products in a given Wishlist)
+ * API: POST Wishlists Products (Create a Product in a given Wishlist)
  * Update Document
  *
  * @todo: test coverage
  */
-API.post(WISHLISTS_PRODUCTS, auth.verifyUser, (req, res) => handlers.updateDocument('wishlists', req, res));
+API.post(WISHLISTS_PRODUCT,
+    auth.verifyUser,
+    (req, res) => handlers.createProduct('wishlists', req, res)
+);
 
 /**
- * API: GET Product URL
+ * API: PUT Wishlists Products (Update a Product in a given Wishlist)
+ * Update Document
+ *
+ * @todo: test coverage
+ */
+API.put(WISHLISTS_PRODUCT,
+    auth.verifyUser,
+    (req, res) => handlers.updateProduct('wishlists', req, res)
+);
+
+/**
+ * API: GET Any URL
  * Fetch URL data: OG Tags/Scraped Data
  *
  * @todo: test coverage
  */
-API.get(PRODUCTS, auth.verifyUser, handlers.fetchProductURL);
+API.get(LOOKUP,
+    auth.verifyUser,
+    handlers.fetchProductURL
+);
 
 /**
  * API: PUT Products
@@ -85,6 +108,6 @@ API.get(PRODUCTS, auth.verifyUser, handlers.fetchProductURL);
  *
  * @todo: test coverage
  */
-//API.put(PRODUCTS, (req, res) => handlers.updateDocument('products', req, res));
+//API.put(LOOKUP, (req, res) => handlers.updateDocument('products', req, res));
 
 module.exports = API;

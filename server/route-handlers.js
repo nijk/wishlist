@@ -40,7 +40,7 @@ module.exports = {
         page = parseInt(page || 1);
         limit = parseInt(limit || queryLimit);
 
-        DB.retrieveDocuments({user, resource, page, limit})
+        DB.retrieveDocuments({ user, resource, page, limit })
             .then((results) => {
                 res.json(results);
             })
@@ -70,6 +70,60 @@ module.exports = {
             DB.updateDocument({ user, resource, resourceID, collection, collectionID, items })
                 .then((result) => res.json({ result, items }))
                 .catch((err) => new APIError({ code: 500, message: 'Could not update document', originError: err }, req, res));
+
+        } else {
+            new APIError({ status: 409, message: 'Nothing to do: "collection" and/or "item" parameters missing' }, req, res);
+        }
+    },
+
+    createProduct (resource, req, res) {
+        const { items } = req.body;
+        const { resourceID, collection, collectionID } = req.params;
+        const user = req.user;
+
+        if (user && resourceID && collection && items) {
+
+        } else {
+            new APIError({ status: 409, message: 'Nothing to do: "collection" and/or "item" parameters missing' }, req, res);
+        }
+    },
+
+    updateProduct (resource, req, res) {
+        const { items } = req.body;
+        const { resourceID, collection, collectionID } = req.params;
+        const user = req.user;
+
+        if (user && resourceID && collection && items) {
+
+            // @todo: Add/Update product, inc wishlistId.
+            DB.updateDocument({ user, resource, resourceID, collection, collectionID, items })
+                .then((result) => res.json({ result, items }))
+                .catch((err) => new APIError({ code: 500, message: 'Could not update document', originError: err }, req, res));
+
+            // @todo: Update wishlist with new productId
+
+            // @todo: Return wishlist, based on current page (if results are paged)
+
+            /*DB.retrieveDocuments({ user, resource, page: 1, limit: 1 })
+                .then((results) => {
+                    //let products = results[0].products;
+                    items.forEach(item => {
+                        if (!item.id) {
+                            // New item
+                            //results[0].products.push(item);
+                        } else {
+                            // Existing item
+                            const index = _.findIndex(products, { _id: item.id });
+                            if (index >= 0) {
+                                products[index] = item;
+                            }
+                        }
+                    });
+
+                })
+                .catch((err) => new APIError({ status: 409, message: 'Could not retrieve documents', originError: err}, req, res));
+*/
+
 
         } else {
             new APIError({ status: 409, message: 'Nothing to do: "collection" and/or "item" parameters missing' }, req, res);

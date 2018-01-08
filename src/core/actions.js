@@ -85,7 +85,7 @@ const actions = {
         API.fetchCollection({ resource: 'wishlists', id: wishlistID, page: 1, limit })
             .then(({ body }) => {
                 const payload = _.map(body, cleanseIncomingParams);
-                eventFactory.bind(this)(event, eventTypes.SUCCESS, payload);
+                eventFactory.bind(this)(event, eventTypes.SUCCESS, payload[0].products);
             }, errorCallback);
     },
 
@@ -97,13 +97,13 @@ const actions = {
         this.dispatch(events.EDIT_PRODUCT_CANCEL, product);
     },
 
-    updateProduct (product, wishlist) {
+    updateProduct (product, wishlistID) {
         const event = events.MODIFY_PRODUCTS;
         const payload = { type: 'update', product };
         this.dispatch(event, payload);
 
         const data = cleanseOutgoingParams(product);
-        API.updateProduct(data, wishlist)
+        API.updateProduct(data, wishlistID)
             .then(({ body }) => {
                 payload.product = cleanseIncomingParams(body.item);
                 eventFactory.bind(this)(event, eventTypes.SUCCESS, payload);
@@ -114,13 +114,13 @@ const actions = {
             });
     },
 
-    deleteProduct (product, wishlist) {
+    deleteProduct (product, wishlistID) {
         const event = events.MODIFY_PRODUCTS;
         const payload = { type: 'delete', product };
         this.dispatch(event, payload);
 
         const data = cleanseOutgoingParams(product);
-        API.deleteProduct(data, wishlist)
+        API.deleteProduct(data, wishlistID)
             .then(() => {
                     eventFactory.bind(this)(event, eventTypes.SUCCESS, payload);
                 },
