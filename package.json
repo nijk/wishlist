@@ -9,7 +9,7 @@
     "dev-be": "webpack --config webpack.server.config.js --watch",
     "dev-fe": "webpack --config webpack.config.js --watch",
     "deploy": "NODE_ENV=production webpack -p --config webpack.production.config.js && webpack --config webpack.server.config.js",
-    "test": "mocha --compilers js:mocha-babel --inline-diffs"
+    "test": "mocha --compilers js:babel-core/register --inline-diffs"
   },
   "repository": {
     "type": "git",
@@ -38,6 +38,7 @@
     "babel-runtime": "^6.26.0",
     "body-parser": "^1.18.2",
     "chai": "^3.5.0",
+    "chai-http": "^3.0.0",
     "css-loader": "^0.22.0",
     "eslint": "^1.10.3",
     "eslint-loader": "^1.9.0",

@@ -4,39 +4,42 @@
  * Created by nijk on 21/11/2015.
  */
 
-'use strict';
-
 // const _ = require('lodash');
-const sandbox = require('sinon').sandbox.create();
-const chai = require('chai');
-const expect = chai.expect;
-const mockery = require('mockery');
-const common = require('./common');
+// const mockery = require('mockery');
+// const chai = require('chai');
+
+import { describe, it, before, after } from 'mocha';
+import { expect } from 'chai';
+import sinon from 'sinon';
+import common from './common';
+import { apiRoute } from '../common/enums.api';
+
+const sandbox = sinon.sandbox.create();
 
 let agent;
 let stubs = {
-        csrf: sandbox.stub().returns((req, res, next) => {
-            req.csrfToken = () => '123';
-            next();
-        }),
-        DB: {
-            createCollection: sandbox.stub().returns(common.promise(null, { msg: 'DB.createCollection not stubbed' })),
-            retrieveCollections: sandbox.stub().returns(common.promise(null, { msg: 'DB.retrieveCollections not stubbed' })),
-            retrieveDocuments: sandbox.stub().returns(common.promise(null, { msg: 'DB.retrieveDocuments not stubbed' }))
-        },
-        ogScraper: {
-            error: sandbox.stub().returns(null),
-            result: sandbox.stub().returns({
-                success: true,
-                opengraph: true,
-                data: { ogSiteName: 'FooBar' }
-            })
-        }
-    };
+  csrf: sandbox.stub().returns((req, res, next) => {
+    req.csrfToken = () => '123';
+    next();
+  }),
+  DB: {
+    createCollection: sandbox.stub().returns(common.promise(null, { msg: 'DB.createCollection not stubbed' })),
+    retrieveCollections: sandbox.stub().returns(common.promise(null, { msg: 'DB.retrieveCollections not stubbed' })),
+    retrieveDocuments: sandbox.stub().returns(common.promise(null, { msg: 'DB.retrieveDocuments not stubbed' }))
+  },
+  ogScraper: {
+    error: sandbox.stub().returns(null),
+    result: sandbox.stub().returns({
+      success: true,
+      opengraph: true,
+      data: { ogSiteName: 'FooBar' }
+    })
+  }
+};
 
 /**
  * Mocks to use
- * @type Oject literal
+ * @type Object literal
  *   Key: Module (require) name/path
  *   Value: Export value to mock
  */
@@ -60,9 +63,7 @@ const agentCallback = (chaiAgent) => agent = chaiAgent;
 const setUp = () => common.setUp({ mocks, agentCallback });
 
 describe('API', function () {
-    before(function () {
-        setUp();
-    });
+    before(setUp);
     after(common.tearDown);
 
     it('should set a session cookie', function (done) {
@@ -75,7 +76,7 @@ describe('API', function () {
 
     describe('CSRF', function () {
         it('should return a token as a string', function (done) {
-            agent.get('/api/token')
+            agent.get(`${apiRoute}/token`)
                 .end((err, res) => {
                     expect(res).to.have.status(200);
                     expect(res.body.token).to.be.a('string');
@@ -87,7 +88,7 @@ describe('API', function () {
     describe('ProductURL', function () {
         it('should accept a URI encoded param', function (done) {
             const url = encodeURIComponent('http://foo.bar');
-            agent.get(`/api/product/${url}`)
+            agent.get(`${apiRoute}/product/${url}`)
                 .end((err, res) => {
                     expect(res).to.have.status(200);
                     common.done(done)(err, res);
@@ -96,7 +97,7 @@ describe('API', function () {
 
         it('should return an object containing Open Graph data', function (done) {
             const url = encodeURIComponent('http://foo.bar');
-            agent.get(`/api/product/${url}`)
+            agent.get(`${apiRoute}/product/${url}`)
                 .end((err, res) => {
                     expect(res).to.have.status(200);
                     expect(res.body.data).to.have.deep.property('ogSiteName', 'FooBar');
@@ -109,7 +110,7 @@ describe('API', function () {
             stubs.ogScraper.result.returns({ err: 'Forced 500 error' });
 
             const url = encodeURIComponent('http://foo.bar');
-            agent.get(`/api/product/${url}`)
+            agent.get(`${apiRoute}/product/${url}`)
                 .end((err, res) => {
                     expect(res).to.have.status(500);
                     common.done(done)(err, res);
@@ -119,7 +120,7 @@ describe('API', function () {
 
     describe('Invalid resource', function () {
         it('should return a 400 for invalid resource', function (done) {
-            agent.get('/api/invalid')
+            agent.get(`${apiRoute}/invalid`)
                 .end((err, res) => {
                     expect(res).to.have.status(400);
                     expect(res.body).to.have.property('msg', 'API Error: Invalid resource');
@@ -135,7 +136,7 @@ describe('API', function () {
             stubs.DB.retrieveDocuments.returns(common.promise(resolve));
             setUp();
 
-            agent.get('/api/wishlists')
+            agent.get(`${apiRoute}/wishlists`)
                 .end((err, res) => {
                     expect(res).to.have.status(200);
                     expect(res.body.data).to.be.an('Array');
@@ -148,7 +149,7 @@ describe('API', function () {
             stubs.DB.retrieveDocuments.returns(common.promise(resolve));
             setUp();
 
-            agent.get('/api/wishlists/valid')
+            agent.get(`${apiRoute}/wishlists/valid`)
                 .end((err, res) => {
                     expect(res).to.have.status(200);
                     expect(res.body.data).to.have.property('foo', 'bar');
@@ -162,7 +163,7 @@ describe('API', function () {
             stubs.DB.retrieveDocuments.returns(common.promise(null, reject));
             setUp();
 
-            agent.get('/api/wishlists/invalid')
+            agent.get(`${apiRoute}/wishlists/invalid`)
                 .end((err, res) => {
                     expect(res).to.have.status(400);
                     expect(res.body).to.have.property('msg', 'API Error: Invalid collection');
@@ -174,11 +175,11 @@ describe('API', function () {
             stubs.DB.createCollection.returns(common.promise(resolve));
             setUp();
 
-            agent.post('/api/wishlists')
+            agent.post(`${apiRoute}/wishlists`)
                 .send({ item: { name: 'foo' } })
                 .end((err, res) => {
                     expect(res).to.have.status(201);
-                    expect(res).to.have.header('location', '/api/wishlists/foo//');
+                    expect(res).to.have.header('location', `${apiRoute}/wishlists/foo//`);
                     common.done(done)(err, res);
                 });
         });
@@ -188,7 +189,7 @@ describe('API', function () {
             stubs.DB.retrieveCollections.returns(common.promise(resolve));
             setUp();
 
-            agent.get('/api/wishlists')
+            agent.get(`${apiRoute}/wishlists`)
                 .end((err, res) => {
                     expect(res).to.have.status(200);
                     expect(res.body.data).to.deep.equal([{ foo: 'bar' }, { baz: 'qux' }]);

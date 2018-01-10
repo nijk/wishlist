@@ -11,6 +11,9 @@ const chaiHttp = require('chai-http');
 const mockery = require('mockery');
 const app = require('express')();
 
+const configureApp = require('../server/config');
+const setupAPI = require('../server/api');
+
 let agent;
 
 /**
@@ -18,11 +21,11 @@ let agent;
  */
 const setUpExpress = () => {
     // Setup app with API & Config
-    require('../server/config')(app);
-    require('../server/api')(app);
+    configureApp(app);
+    // setupAPI(app);
 
     // Setup app fake static response to get session cookie
-    app.get('/', (req, res) => res.json({}) );
+    app.get('/', (req, res) => res.json({}));
 };
 
 /**

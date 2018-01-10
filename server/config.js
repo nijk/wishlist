@@ -4,8 +4,6 @@
  * Created by nijk on 10/11/2015.
  */
 
-'use strict';
-
 // Dependencies
 const logger = require('morgan');
 const bodyParser = require('body-parser');
@@ -40,7 +38,7 @@ module.exports = (app) => {
     /* Static Assets */
     app.use(serveStatic('dist', serveStaticOpts));
 
-    for(var route in routes) {
+    for(let route in routes) {
         // Support client side routing, by serving index.html on any route the app supports.
         app.get(routes[route], (req, res) => {
             res.sendFile('dist/index.html', { root: '.'});
@@ -60,7 +58,7 @@ module.exports = (app) => {
     //app.use(APIErrorHandler);
 
     /* Error Handling: middleware should be loaded after the loading the routes */
-    if ('development' == app.get('env')) {
+    if ('development' === app.get('env')) {
         app.use(logger('dev'));
         app.use(errorHandler);
     }

@@ -3,25 +3,22 @@
  *
  * Created by nijk on 10/11/2015.
  */
-
-'use strict';
-
-const API = require('express').Router();
+const Router = require('express').Router();
 const passport = require('passport');
 
 const auth = require('./auth');
 const handlers = require('./route-handlers');
-const { APIErrorRouteHandler } = require('./api-error');
-const { routes } = require('../common/enums.api.js');
-const { LOGIN, USERS, LOOKUP, WISHLISTS, WISHLISTS_PRODUCT } = routes;
+const { RouterErrorRouteHandler } = require('./api-error');
+
+import { ROUTES } from '../common/enums.api';
 
 /**
- * API: POST Login
+ * Router: POST Login
  * User login
  *
  * @todo: test coverage
  */
-API.post(LOGIN,
+Router.post(ROUTES.LOGIN,
     passport.authenticate('local'),
     auth.loginUser,
     (req, res) => {
@@ -31,83 +28,83 @@ API.post(LOGIN,
 );
 
 /**
- * API: POST User
+ * Router: POST User
  * Create new user accounts
  *
  * @todo: test coverage
  */
-/*API.post(USERS, (req, res) => {
+/*Router.post(ROUTES.USERS, (req, res) => {
     const { email, password } = req.body;
     if (email && password) {
         auth.createUser({ email, password })
             .then((result) => res.json(result.ops))
-            .catch((err) => APIError({ code: 409, msg: 'Could not create user', originError: err }, req, res));
+            .catch((err) => RouterError({ code: 409, msg: 'Could not create user', originError: err }, req, res));
     } else {
-        APIError({ code: 409, msg: 'Nothing to do: "email" and/or "password" parameters missing.' }, req, res);
+        RouterError({ code: 409, msg: 'Nothing to do: "email" and/or "password" parameters missing.' }, req, res);
     }
 });*/
 
 /**
- * API: GET Wishlists
+ * Router: GET Wishlists
  * With paging
  *
  * @todo: test coverage
  */
-API.get(WISHLISTS,
+Router.get(ROUTES.WISHLISTS,
     auth.verifyUser,
     (req, res) => handlers.retrieveDocuments('wishlists', req, res)
 );
 
 /**
- * API: POST Wishlists
+ * Router: POST Wishlists
  * Create Document
  *
  * @todo: test coverage
  */
-API.post(WISHLISTS,
+Router.post(ROUTES.WISHLISTS,
     auth.verifyUser,
     (req, res) => handlers.createDocument('wishlists', req, res)
 );
 
 /**
- * API: POST Wishlists Products (Create a Product in a given Wishlist)
+ * Router: POST Wishlists Products (Create a Product in a given Wishlist)
  * Update Document
  *
  * @todo: test coverage
  */
-API.post(WISHLISTS_PRODUCT,
+Router.post(ROUTES.WISHLISTS_PRODUCT,
     auth.verifyUser,
     (req, res) => handlers.createProduct('wishlists', req, res)
 );
 
 /**
- * API: PUT Wishlists Products (Update a Product in a given Wishlist)
+ * Router: PUT Wishlists Products (Update a Product in a given Wishlist)
  * Update Document
  *
  * @todo: test coverage
  */
-API.put(WISHLISTS_PRODUCT,
+Router.put(ROUTES.WISHLISTS_PRODUCT,
     auth.verifyUser,
     (req, res) => handlers.updateProduct('wishlists', req, res)
 );
 
 /**
- * API: GET Any URL
+ * Router: GET Any URL
  * Fetch URL data: OG Tags/Scraped Data
  *
  * @todo: test coverage
  */
-API.get(LOOKUP,
+Router.get(ROUTES.LOOKUP,
     auth.verifyUser,
     handlers.fetchProductURL
 );
 
 /**
- * API: PUT Products
+ * Router: PUT Products
  * Update Products
  *
  * @todo: test coverage
  */
-//API.put(LOOKUP, (req, res) => handlers.updateDocument('products', req, res));
+//Router.put(ROUTES.LOOKUP, (req, res) => handlers.updateDocument('products', req, res));
 
-module.exports = API;
+module.exports = Router;
