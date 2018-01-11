@@ -4,8 +4,6 @@
  * Created by nijk on 10/11/2015.
  */
 
-'use strict';
-
 // Config
 const config = {
     port: 27017,
@@ -23,8 +21,11 @@ const Promise = require('native-promise-only');
  * Connect using MongoClient
  * @param dbName
  */
-const connectDB = (dbName) => {
-    dbName = dbName || config.defaultDB;
+const connectDB = (dbName = config.defaultDB) => {
+    if (process.env.NODE_ENV === 'test') {
+      // @todo: Create a test DB
+      // dbName = `${dbName}-test`;
+    }
 
     return new Promise((resolve, reject) => {
         MongoDB.MongoClient.connect(config.url + dbName, {}, (err, db) => {

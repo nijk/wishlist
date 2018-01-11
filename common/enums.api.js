@@ -1,6 +1,6 @@
 'use strict'
 
-export const apiRoute = '/v1/api'
+export const apiRoute = '/v1/api';
 
 export const ROUTES = {
   LOGIN: `${apiRoute}/login`,
@@ -14,4 +14,4 @@ export default {
   queryLimit: 10,
   resources: ['product', 'wishlists', 'users'],
   routes: ROUTES,
-}
+};
